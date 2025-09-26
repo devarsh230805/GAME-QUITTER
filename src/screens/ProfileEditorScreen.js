@@ -48,12 +48,16 @@ export default function ProfileEditorScreen({ onClose }) {
     setTaskInput('');
   }
 
+  const containerStyle = onClose ? styles.wrapModal : styles.wrapFull;
+  const shellStyle = onClose ? styles.cardShell : styles.cardFull;
+  const scrollStyle = onClose ? { maxHeight: 520 } : { flex: 1 };
+  const scrollContent = onClose ? { paddingBottom: 8 } : { paddingBottom: 24 };
   return (
-    <View style={styles.wrap}>
-      <View style={styles.cardShell}>
+    <View style={containerStyle}>
+      <View style={shellStyle}>
         <Text style={styles.title}>Profile / Settings</Text>
-        <ScrollView style={{ maxHeight: 520 }} contentContainerStyle={{ paddingBottom: 8 }}>
-          <View style={styles.cardSection}>
+        <ScrollView style={scrollStyle} contentContainerStyle={scrollContent}>
+          <View style={onClose ? styles.cardSection : styles.sectionFull}>
             <Text style={styles.cardTitle}>Motivations</Text>
             <TextInput
               style={styles.textarea}
@@ -65,7 +69,7 @@ export default function ProfileEditorScreen({ onClose }) {
             />
           </View>
 
-          <View style={styles.cardSection}>
+          <View style={onClose ? styles.cardSection : styles.sectionFull}>
             <Text style={styles.cardTitle}>Scheduled Slots</Text>
             {dailyTargetHours > 0 && (
               <Text style={styles.note}>Remaining today: {Math.max(0, remainingPlannedHours)}h / {dailyTargetHours}h</Text>
@@ -87,12 +91,12 @@ export default function ProfileEditorScreen({ onClose }) {
                 <Text style={styles.small}>Duration (h)</Text>
                 <WheelPicker data={[1,2,3,4,5,6,7,8,9,10,11,12]} value={dur} onChange={setDur} />
               </View>
-              <Pressable style={styles.addBtn} onPress={addSlotWheel}><Text style={styles.addTxt}>Add</Text></Pressable>
+              <Pressable style={({ pressed }) => [styles.addBtn, pressed && styles.addBtnPressed]} onPress={addSlotWheel}><Text style={styles.addTxt}>Add</Text></Pressable>
             </View>
             {!!err && <Text style={styles.error}>{err}</Text>}
           </View>
 
-          <View style={styles.cardSection}>
+          <View style={onClose ? styles.cardSection : styles.sectionFull}>
             <Text style={styles.cardTitle}>Daily Tasks</Text>
             {tasks.length === 0 && <Text style={styles.muted}>No tasks yet.</Text>}
             {tasks.map((t) => (
@@ -107,7 +111,9 @@ export default function ProfileEditorScreen({ onClose }) {
             </View>
           </View>
         </ScrollView>
-        <Pressable style={styles.secondary} onPress={onClose}><Text style={styles.secondaryTxt}>Close</Text></Pressable>
+        {!!onClose && (
+          <Pressable style={({ pressed }) => [styles.secondary, pressed && { opacity: 0.7 }]} onPress={onClose}><Text style={styles.secondaryTxt}>Close</Text></Pressable>
+        )}
       </View>
     </View>
   );
@@ -148,10 +154,13 @@ function WheelPicker({ data, value, onChange }) {
 }
 
 const styles = StyleSheet.create({
-  wrap: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', alignItems: 'center', justifyContent: 'center' },
+  wrapModal: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', alignItems: 'center', justifyContent: 'center' },
+  wrapFull: { flex: 1, backgroundColor: '#FFFFFF', paddingHorizontal: 20, paddingTop: 12 },
   cardShell: { width: '92%', backgroundColor: '#FFFFFF', borderRadius: 16, borderWidth: 1, borderColor: '#E5E7EB', padding: 18 },
+  cardFull: { flex: 1, backgroundColor: '#FFFFFF', paddingBottom: 12 },
   title: { color: '#111827', fontSize: 18, fontWeight: '800', marginBottom: 10 },
   cardSection: { backgroundColor: '#fff', borderRadius: 14, borderWidth: 1, borderColor: '#F3F4F6', padding: 12, marginBottom: 12, shadowColor: '#000', shadowOpacity: 0.04, shadowRadius: 8, shadowOffset: { width: 0, height: 3 } },
+  sectionFull: { backgroundColor: '#FFFFFF', paddingVertical: 8, marginBottom: 8 },
   cardTitle: { color: '#111827', fontSize: 16, fontWeight: '700', marginBottom: 8 },
   textarea: { backgroundColor: '#F3F4F6', borderWidth: 1, borderColor: '#E5E7EB', color: '#111827', borderRadius: 12, padding: 12, minHeight: 80 },
   row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 8 },
@@ -159,9 +168,9 @@ const styles = StyleSheet.create({
   done: { textDecorationLine: 'line-through', color: '#6B7280' },
   inlineForm: { flexDirection: 'row', alignItems: 'center', marginTop: 6 },
   input: { flex: 1, backgroundColor: '#F3F4F6', borderWidth: 1, borderColor: '#E5E7EB', color: '#111827', borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10, marginRight: 8 },
-  primarySmall: { backgroundColor: '#111827', paddingVertical: 10, paddingHorizontal: 14, borderRadius: 12 },
+  primarySmall: { backgroundColor: '#111827', paddingVertical: 10, paddingHorizontal: 14, borderRadius: 8 },
   primaryTxt: { color: '#FFFFFF', fontWeight: '800' },
-  badBtn: { backgroundColor: '#F3F4F6', paddingVertical: 8, paddingHorizontal: 12, borderRadius: 12, marginLeft: 12 },
+  badBtn: { backgroundColor: '#F3F4F6', paddingVertical: 8, paddingHorizontal: 12, borderRadius: 8, marginLeft: 12 },
   badBtnTxt: { color: '#111827' },
   checkbox: { width: 18, height: 18, borderRadius: 4, borderWidth: 2, borderColor: '#111827', marginRight: 10 },
   checkboxOn: { backgroundColor: '#111827' },
@@ -170,7 +179,8 @@ const styles = StyleSheet.create({
   slotBuilder: { flexDirection: 'row', alignItems: 'center', marginTop: 8 },
   wheelCol: { flex: 1, marginRight: 10 },
   small: { color: '#6B7280', marginBottom: 6 },
-  addBtn: { backgroundColor: '#111827', paddingVertical: 12, paddingHorizontal: 16, borderRadius: 12 },
+  addBtn: { backgroundColor: '#111827', paddingVertical: 12, paddingHorizontal: 16, borderRadius: 8 },
+  addBtnPressed: { backgroundColor: '#4B5563' },
   addTxt: { color: '#FFFFFF', fontWeight: '800' },
   wheelWrap: { height: 120, borderRadius: 12, backgroundColor: '#F9FAFB', borderWidth: 1, borderColor: '#E5E7EB', overflow: 'hidden' },
   wheelItem: { alignItems: 'center', justifyContent: 'center' },

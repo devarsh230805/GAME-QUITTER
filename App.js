@@ -5,17 +5,19 @@ import { AppProvider, useApp } from './src/store/AppContext';
 import { colors, spacing, typography } from './src/theme/tokens';
 import SplashScreen from './src/screens/SplashScreen';
 import OnboardingWelcome from './src/screens/OnboardingWelcome';
+import OnboardingWelcome2 from './src/screens/OnboardingWelcome2';
+import OnboardingWelcome3 from './src/screens/OnboardingWelcome3';
+import OnboardingQuizAdvanced from './src/screens/OnboardingQuizAdvanced';
 import OnboardingRitual from './src/screens/OnboardingRitual';
 import OnboardingAuth from './src/screens/OnboardingAuth';
 import DailyGoalsSetup from './src/screens/DailyGoalsSetup';
 import HomeLightScreen from './src/screens/HomeLightScreen';
-import ProgressLightScreen from './src/screens/ProgressLightScreen';
-import CommunityLightScreen from './src/screens/CommunityLightScreen';
-import ProfileLightScreen from './src/screens/ProfileLightScreen';
 import GameModeScreen from './src/screens/GameModeScreen';
 import RetroLogScreen from './src/screens/RetroLogScreen';
 import StatsHistoryScreen from './src/screens/StatsHistoryScreen';
 import ProfileEditorScreen from './src/screens/ProfileEditorScreen';
+import {HouseIcon, GameControllerIcon, NotepadIcon, ChartLineIcon, UserIcon} from 'phosphor-react-native';
+import {SafeAreaView} from 'react-native-safe-area-context';
 
 export default function App() {
   return (
@@ -29,12 +31,7 @@ function AppInner() {
   const { firstOpenDone, setFirstOpenDone } = useApp();
   const [tab, setTab] = useState('home');
   const [flow, setFlow] = useState('splash'); // splash | onboarding | main
-  const [step, setStep] = useState('welcome'); // welcome | ritual | auth | goals
-
-  const [showGameMode, setShowGameMode] = useState(false);
-  const [showRetro, setShowRetro] = useState(false);
-  const [showStats, setShowStats] = useState(false);
-  const [showProfile, setShowProfile] = useState(false);
+  const [step, setStep] = useState('welcome'); // welcome | welcome2 | welcome3 | quiz | ritual | auth | goals
 
   useEffect(() => {
     if (flow === 'splash') {
@@ -46,21 +43,30 @@ function AppInner() {
   const renderMain = () => {
     switch (tab) {
       case 'home':
-      default:
         return (
           <HomeLightScreen
-            onStart={() => setShowStats(true)}
-            openGameMode={() => setShowGameMode(true)}
-            openRetro={() => setShowRetro(true)}
-            openStats={() => setShowStats(true)}
-            openProfile={() => setShowProfile(true)}
+            onStart={() => setTab('stats')}
+            openGameMode={() => setTab('game')}
+            openRetro={() => setTab('log')}
+            openStats={() => setTab('stats')}
+            openProfile={() => setTab('profile')}
           />
         );
+      case 'game':
+        return <GameModeScreen />;
+      case 'log':
+        return <RetroLogScreen />;
+      case 'stats':
+        return <StatsHistoryScreen />;
+      case 'profile':
+        return <ProfileEditorScreen />;
+      default:
+        return <HomeLightScreen />;
     }
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <StatusBar style="light" />
       {flow === 'splash' && (
         <SplashScreen onDone={() => setFlow(firstOpenDone ? 'main' : 'onboarding')} />
@@ -69,7 +75,16 @@ function AppInner() {
       {flow === 'onboarding' && (
         <View style={{ flex: 1 }}>
           {step === 'welcome' && (
-            <OnboardingWelcome onSkip={() => setStep('ritual')} onNext={() => setStep('ritual')} />
+            <OnboardingWelcome onSkip={() => setStep('welcome2')} onNext={() => setStep('welcome2')} />
+          )}
+          {step === 'welcome2' && (
+            <OnboardingWelcome2 onNext={() => setStep('welcome3')} />
+          )}
+          {step === 'welcome3' && (
+            <OnboardingWelcome3 onNext={() => setStep('quiz')} />
+          )}
+          {step === 'quiz' && (
+            <OnboardingQuizAdvanced onComplete={() => setStep('ritual')} onSkip={() => setStep('ritual')} />
           )}
           {step === 'ritual' && (
             <OnboardingRitual onCommitted={() => setStep('auth')} />
@@ -87,19 +102,17 @@ function AppInner() {
         <>
           <View style={styles.content}>{renderMain()}</View>
           <View style={styles.tabbar}>
-            <TabButton icon="⌂" active={true} onPress={() => setTab('home')} />
-            <TabButton icon="▶" active={false} onPress={() => setShowGameMode(true)} />
-            <TabButton icon="✓" active={false} onPress={() => setShowRetro(true)} />
-            <TabButton icon="≣" active={false} onPress={() => setShowStats(true)} />
-          </View>
+            <TabButton icon={<HouseIcon  size={24
 
-          {showGameMode && <GameModeScreen onClose={() => setShowGameMode(false)} />}
-          {showRetro && <RetroLogScreen onClose={() => setShowRetro(false)} />}
-          {showStats && <StatsHistoryScreen onClose={() => setShowStats(false)} />}
-          {showProfile && <ProfileEditorScreen onClose={() => setShowProfile(false)} />}
+            } />} active={tab === 'home'} onPress={() => setTab('home')} /> 
+            <TabButton icon={<GameControllerIcon size={24} />} active={tab === 'game'} onPress={() =>{ setTab('game') ,opacity=0.95}} />
+            <TabButton icon={<NotepadIcon size={24} />} active={tab === 'log'} onPress={() =>{ setTab('log') ,opacity=0.95}} />
+            <TabButton icon={<ChartLineIcon size={24} />} active={tab === 'stats'} onPress={() =>{ setTab('stats') ,opacity=0.95}} />
+            <TabButton icon={<UserIcon size={24} />} active={tab === 'profile'} onPress={() => setTab('profile')} opacity={0.95}/>
+          </View>
         </>
       )}
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -115,14 +128,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     backgroundColor: '#ffffff',
     borderTopWidth: 1,
-    borderTopColor: '#EDEDED',
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.sm,
+    borderTopColor: '#E0E0E0',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
     justifyContent: 'space-between',
     shadowColor: '#000',
-    shadowOpacity: 0.06,
-    shadowRadius: 10,
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
     shadowOffset: { width: 0, height: -2 },
+    elevation: 8,
   },
 });
 
@@ -146,19 +160,21 @@ const tabBtnStyles = StyleSheet.create({
     paddingVertical: spacing.xs,
     borderRadius: 12,
     marginHorizontal: spacing.xs,
+    backgroundColor: 'transparent',
   },
   active: {
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#F0F0F0',
   },
   pressed: {
-    opacity: 0.8,
+    backgroundColor: '#E5E5E5',
+    opacity: 1,
   },
   icon: {
-    fontSize: 18,
-    color: '#000',
+    fontSize: 20,
+    color: '#666',
   },
   iconActive: {
-    color: '#000',
-    fontWeight: '900',
+    color: '#25D366',
+    fontWeight: 'bold',
   },
 });

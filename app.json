@@ -2,6 +2,7 @@
   "expo": {
     "name": "game-add-app",
     "slug": "game-add-app",
+    "scheme": "game-add-app",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -13,9 +14,11 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.jay1026v.gameaddapp"
     },
     "android": {
+      "package": "com.jay1026v.gameaddapp",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
@@ -24,6 +27,15 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-web-browser",
+      "expo-secure-store"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "48485739-8456-4dc5-9bd8-28c9d75c02df"
+      }
     }
   }
 }

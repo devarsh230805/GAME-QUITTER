@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, Pressable, ScrollView } from 'react-native';
+import HeaderBar from '../components/HeaderBar';
 import { useApp } from '../store/AppContext';
 
 function msToHMS(ms) {
@@ -20,11 +21,9 @@ export default function HomeLightScreen({ onStart, openGameMode, openRetro, open
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.containerContent}>
+      <HeaderBar title="Home" />
       <View style={styles.headerRow}>
-        <View style={{ flex: 1 }}>
-          <Text style={styles.h1}>Your Game Quit Journey</Text>
-          <Text style={styles.sub}>Stay accountable with a simple plan.</Text>
-        </View>
+        <View style={{ flex: 1 }} />
         <Pressable style={styles.profileBtn} onPress={openProfile}><Text style={styles.profileBtnTxt}>Profile</Text></Pressable>
       </View>
 
@@ -75,8 +74,6 @@ export default function HomeLightScreen({ onStart, openGameMode, openRetro, open
           </Pressable>
         ))}
       </View>
-
-      {/* Removed action buttons for Game Mode / Log / Stats from Home as requested */}
     </ScrollView>
   );
 }
@@ -114,7 +111,7 @@ const styles = StyleSheet.create({
   actionItem: { alignItems: 'center' },
   actionCircle: { width: 44, height: 44, borderRadius: 22, backgroundColor: '#111', alignItems: 'center', justifyContent: 'center' },
   actionLabel: { color: '#333', marginTop: 6, fontSize: 12 },
-  cta: { backgroundColor: '#111', borderRadius: 28, paddingVertical: 14, alignItems: 'center', marginTop: 8 },
+  cta: { backgroundColor: '#111', borderRadius: 8, paddingVertical: 14, alignItems: 'center', marginTop: 8 },
   ctaText: { color: '#fff', fontSize: 16, fontWeight: '600' },
   slotRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 6 },
   slotTime: { color: '#111', fontWeight: '700' },

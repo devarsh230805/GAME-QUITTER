@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
+import HeaderBar from '../components/HeaderBar';
 import { useApp } from '../store/AppContext';
 
 function msToH(ms) { return (ms / 3600000).toFixed(2); }
@@ -9,6 +10,7 @@ export default function StatsHistoryScreen({ onClose }) {
 
   return (
     <View style={styles.wrap}>
+      <HeaderBar title="Stats" />
       <View style={styles.card}>
         <Text style={styles.title}>Stats & History</Text>
         <ScrollView style={{ maxHeight: 280 }}>
@@ -31,15 +33,19 @@ export default function StatsHistoryScreen({ onClose }) {
             </View>
           ))}
         </ScrollView>
-        <Text onPress={onClose} style={styles.close}>Close</Text>
+        {!!onClose && (
+          <Pressable style={({ pressed }) => [styles.closeBtn, pressed && styles.closeBtnPressed]} onPress={onClose}>
+            <Text style={styles.closeTxt}>Close</Text>
+          </Pressable>
+        )}
       </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  wrap: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', alignItems: 'center', justifyContent: 'center' },
-  card: { width: '92%', backgroundColor: '#FFFFFF', borderRadius: 16, borderWidth: 1, borderColor: '#E5E7EB', padding: 18 },
+  wrap: { flex: 1, backgroundColor: '#FFFFFF', padding: 18 },
+  card: { flex: 1, backgroundColor: '#FFFFFF', borderRadius: 16, borderWidth: 1, borderColor: '#E5E7EB', padding: 18 },
   title: { color: '#111', fontSize: 18, fontWeight: '800', marginBottom: 8 },
   row: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: '#E5E7EB' },
   cell: { color: '#111', flex: 1 },
@@ -47,5 +53,7 @@ const styles = StyleSheet.create({
   empty: { color: '#6B7280', textAlign: 'center', paddingVertical: 10 },
   confTs: { color: '#6B7280', fontSize: 12 },
   conf: { color: '#111' },
-  close: { textAlign: 'center', color: '#111', marginTop: 12 },
+  closeBtn: { alignItems: 'center', marginTop: 12, backgroundColor: '#111', paddingVertical: 12, borderRadius: 8 },
+  closeBtnPressed: { backgroundColor: '#666' },
+  closeTxt: { color: '#fff', fontWeight: '800' },
 });
