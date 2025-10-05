@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, Pressable, TextInput } from 'react-native';
+import { View, Text, Pressable, TextInput, Keyboard } from 'react-native';
 import { styles } from './OnboardingRitual.styles';
 
 const headline = 'Before playing any game, I will always open the Game Mode in this app.';
@@ -17,6 +17,17 @@ export default function OnboardingRitual({ onCommitted }) {
   const inputRef = React.useRef(null);
 
   const fullyMatched = progress === phrase.length;
+
+  const focusRitualInput = React.useCallback(() => {
+    const node = inputRef.current;
+    if (!node) return;
+    try { Keyboard.dismiss(); } catch {}
+    try { node.focus?.(); } catch {}
+    if (global?.requestAnimationFrame) {
+      requestAnimationFrame(() => { try { node.focus?.(); } catch {} });
+    }
+    setTimeout(() => { try { node.focus?.(); } catch {} }, 0);
+  }, []);
 
   function handleChange(text) {
     if (!text) return setInput('');
@@ -39,7 +50,12 @@ export default function OnboardingRitual({ onCommitted }) {
 
         <Pressable
           style={[styles.typeBox, showMistype && styles.typeBoxError]}
-          onPress={() => inputRef.current && inputRef.current.focus()}
+          onPressIn={focusRitualInput}
+          onPress={focusRitualInput}
+          onPressOut={focusRitualInput}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          accessibilityRole="button"
+          accessibilityLabel="Ritual input"
         >
           <Text style={styles.typeLine}>
             <Text style={styles.matched}>{phrase.slice(0, progress)}</Text>
@@ -55,7 +71,8 @@ export default function OnboardingRitual({ onCommitted }) {
           autoCapitalize="none"
           autoCorrect={false}
           blurOnSubmit={false}
-          style={styles.hiddenInput}
+          showSoftInputOnFocus
+          style={[styles.hiddenInput, { width: 1, height: 1, opacity: 0.01 }]}
         />
 
         {showMistype && (

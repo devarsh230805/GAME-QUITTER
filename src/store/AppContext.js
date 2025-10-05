@@ -20,6 +20,8 @@ export function AppProvider({ children }) {
   // --- New: user onboarding + profile (MVP local only)
   const [firstOpenDone, setFirstOpenDone] = useState(false);
   const [signedIn, setSignedIn] = useState(false); // local stub auth
+  const [profileName, setProfileName] = useState('');
+  const [profileEmail, setProfileEmail] = useState('');
   const [dailyTargetHours, setDailyTargetHours] = useState(0);
 
   // --- New: daily schedule slots and tasks
@@ -73,6 +75,8 @@ export function AppProvider({ children }) {
           if (Array.isArray(data.playLogs)) setPlayLogs(data.playLogs);
           if (typeof data.firstOpenDone === 'boolean') setFirstOpenDone(data.firstOpenDone);
           if (typeof data.signedIn === 'boolean') setSignedIn(data.signedIn);
+          if (typeof data.profileName === 'string') setProfileName(data.profileName);
+          if (typeof data.profileEmail === 'string') setProfileEmail(data.profileEmail);
           if (typeof data.motivations === 'string') setMotivations(data.motivations);
           if (typeof data.dailyTargetHours === 'number') setDailyTargetHours(data.dailyTargetHours);
         }
@@ -85,13 +89,13 @@ export function AppProvider({ children }) {
   useEffect(() => {
     (async () => {
       try {
-        const payload = JSON.stringify({ sessions, running, currentStart, streak, points, challenges, schedule, tasks, playLogs, firstOpenDone, signedIn, motivations, dailyTargetHours });
+        const payload = JSON.stringify({ sessions, running, currentStart, streak, points, challenges, schedule, tasks, playLogs, firstOpenDone, signedIn, profileName, profileEmail, motivations, dailyTargetHours });
         await FileSystem.writeAsStringAsync(STORE_FILE, payload);
       } catch (e) {
         // ignore
       }
     })();
-  }, [sessions, running, currentStart, streak, points, challenges, schedule, tasks, playLogs, firstOpenDone, signedIn, motivations, dailyTargetHours]);
+  }, [sessions, running, currentStart, streak, points, challenges, schedule, tasks, playLogs, firstOpenDone, signedIn, profileName, profileEmail, motivations, dailyTargetHours]);
 
   // start/stop timer
   function startSession() {
@@ -99,6 +103,8 @@ export function AppProvider({ children }) {
     const now = Date.now();
     setRunning(true);
     setCurrentStart(now);
+    // create a new unplanned log entry for budget-based flow
+    setPlayLogs((prev) => [...prev, { id: 'log-' + now, start: now, onPlan: false }]);
   }
 
   function stopSession() {
@@ -107,6 +113,21 @@ export function AppProvider({ children }) {
     setRunning(false);
     setSessions((prev) => [...prev, { start: currentStart, end: now }]);
     setCurrentStart(null);
+    // close the last open play log
+    setPlayLogs((prev) => {
+      const idxFromEnd = [...prev].reverse().findIndex((l) => l.end == null);
+      const realIdx = idxFromEnd >= 0 ? prev.length - 1 - idxFromEnd : -1;
+      if (realIdx === -1) return prev;
+      const copy = [...prev];
+      copy[realIdx] = { ...copy[realIdx], end: now };
+      return copy;
+    });
+  }
+
+  // --- Auth/profile helpers ---
+  function logout() {
+    setSignedIn(false);
+    // keep local data; optionally clear sensitive fields
   }
 
   // live ticker to force re-render each second while running
@@ -172,6 +193,16 @@ export function AppProvider({ children }) {
     return totals;
   }
 
+  // Daily budget helpers (based on dailyTargetHours and msToday)
+  function remainingBudgetMs() {
+    const budget = Math.max(0, (dailyTargetHours || 0) * 3600000);
+    return Math.max(0, budget - msToday());
+  }
+
+  function shouldGatePlay() {
+    return remainingBudgetMs() <= 0;
+  }
+
   function rotateQuote() {
     setQuoteIdx((i) => (i + 1) % quotes.length);
   }
@@ -228,6 +259,9 @@ export function AppProvider({ children }) {
   function addTask(text) {
     const id = 'task-' + Math.random().toString(36).slice(2, 8);
     setTasks((prev) => [...prev, { id, text, completed: false }]);
+  }
+  function removeTask(id) {
+    setTasks((prev) => prev.filter((t) => t.id !== id));
   }
   function resetTasksForNewDay() {
     setTasks((prev) => prev.map((t) => ({ ...t, completed: false })));
@@ -299,6 +333,12 @@ export function AppProvider({ children }) {
     setPoints,
     themeMode,
     setThemeMode,
+    // profile
+    profileName,
+    setProfileName,
+    profileEmail,
+    setProfileEmail,
+    logout,
     challenges,
     toggleChallenge,
     // tracker
@@ -327,11 +367,14 @@ export function AppProvider({ children }) {
     // helpers
     minutesNow,
     isNowInScheduledSlot,
+    remainingBudgetMs,
+    shouldGatePlay,
     markSlotDone,
     markMissedSlotsUpToNow,
     addSlot,
     removeSlot,
     addTask,
+    removeTask,
     toggleTask,
     resetTasksForNewDay,
     startGamingOnPlan,
@@ -343,7 +386,7 @@ export function AppProvider({ children }) {
     plannedHoursSum,
     remainingPlannedHours,
   }), [streak, dailyQuote, points, themeMode, challenges, sessions, running, currentStart
-  , firstOpenDone, signedIn, dailyTargetHours, schedule, tasks, playLogs]);
+  , firstOpenDone, signedIn, profileName, profileEmail, dailyTargetHours, schedule, tasks, playLogs]);
 
   return (
     <AppContext.Provider value={value}>{children}</AppContext.Provider>

@@ -17,7 +17,8 @@ export default function RetroLogScreen({ onClose }) {
   return (
     <View style={styles.wrap}>
       <HeaderBar title="Log" />
-      <View style={styles.card}>
+      <View style={styles.content}>
+        <View style={styles.card}>
         <Text style={styles.title}>Retroactive Logging</Text>
         <Text style={styles.subtitle}>Mark completed scheduled slots</Text>
         <ScrollView style={{ maxHeight: 240 }}>
@@ -38,23 +39,25 @@ export default function RetroLogScreen({ onClose }) {
           ))}
         </ScrollView>
         {!!onClose && (<Pressable style={styles.secondary} onPress={onClose}><Text style={styles.secondaryTxt}>Close</Text></Pressable>)}
+        </View>
       </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  wrap: { flex: 1, backgroundColor: '#0B0F14', padding: 18 },
-  card: { flex: 1, backgroundColor: '#0B0F14', borderRadius: 16, borderWidth: 1, borderColor: '#233040', padding: 18 },
-  title: { color: '#E6EDF3', fontSize: 18, fontWeight: '800' },
-  subtitle: { color: '#9FB0C0', marginTop: 6, marginBottom: 12 },
-  row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#121821' },
-  slot: { color: '#E6EDF3', fontWeight: '700' },
-  badge: { color: '#9FB0C0', fontSize: 12, marginTop: 2 },
-  primary: { backgroundColor: '#6EE7F2', paddingVertical: 10, paddingHorizontal: 14, borderRadius: 8 },
-  primaryPressed: { backgroundColor: '#89EEF6' },
-  primaryTxt: { color: '#001219', fontWeight: '800' },
-  empty: { color: '#9FB0C0', textAlign: 'center', paddingVertical: 10 },
+  wrap: { flex: 1, backgroundColor: '#FFFFFF' },
+  content: { flex: 1, padding: 20 },
+  card: { flex: 1, backgroundColor: '#FFFFFF', borderRadius: 10, padding: 12, shadowColor: '#000', shadowOpacity: 0.07, shadowRadius: 12, shadowOffset: { width: 0, height: 6 }, elevation: 3 },
+  title: { color: '#111', fontSize: 18, fontWeight: '800' },
+  subtitle: { color: '#666', marginTop: 6, marginBottom: 12 },
+  row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#E5E7EB' },
+  slot: { color: '#111', fontWeight: '700' },
+  badge: { color: '#666', fontSize: 12, marginTop: 2 },
+  primary: { backgroundColor: '#111', paddingVertical: 10, paddingHorizontal: 14, borderRadius: 22 },
+  primaryPressed: { backgroundColor: '#333' },
+  primaryTxt: { color: '#fff', fontWeight: '800' },
+  empty: { color: '#6B7280', textAlign: 'center', paddingVertical: 10 },
   secondary: { alignItems: 'center', marginTop: 10 },
-  secondaryTxt: { color: '#E6EDF3' },
+  secondaryTxt: { color: '#111' },
 });

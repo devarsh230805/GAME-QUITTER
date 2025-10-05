@@ -1,15 +1,35 @@
-// Design tokens for GameQuittr
+// Design tokens for GameQuittr - Stickman UI (Black & White)
 export const colors = {
-  background: '#0B0F14',
-  surface: '#121821',
-  primary: '#6EE7F2',
-  primaryDim: '#2B3A47',
-  success: '#6EE7A0',
-  warning: '#F2D36E',
-  danger: '#F26E7E',
-  text: '#E6EDF3',
-  textDim: '#9FB0C0',
-  border: '#233040',
+  // Default theme colors - Black & White "Stickman UI"
+  background: '#FFFFFF', // White background
+  surface: '#FFFFFF', // White surface
+  primary: '#111111', // Black buttons
+  primaryDim: '#4B5563', // Dark gray for pressed states
+  success: '#6EE7A0', // Keep success green
+  warning: '#F2D36E', // Keep warning yellow
+  danger: '#DC2626', // Red for danger
+  text: '#111111', // Black text
+  textDim: '#666666', // Gray text
+  border: '#E5E7EB', // Light gray border
+};
+
+// Game mode theme colors (dark blue + warm orange)
+export const gameModeColors = {
+  background: '#0A1628', // Deep dark blue
+  surface: '#1A2B42', // Darker blue surface
+  primary: '#FF8C42', // Warm orange
+  primaryDim: '#2D4A6B', // Muted blue
+  success: '#6EE7A0', // Keep success green
+  warning: '#FFB366', // Warmer orange for warnings
+  danger: '#FF6B6B', // Softer red
+  text: '#F0F4F8', // Light blue-white text
+  textDim: '#94A3B8', // Muted blue-gray text
+  border: '#334155', // Blue-gray border
+};
+
+// Function to get current theme colors
+export const getThemeColors = (isGameMode = false) => {
+  return isGameMode ? gameModeColors : colors;
 };
 
 export const spacing = {

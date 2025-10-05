@@ -1,16 +1,29 @@
-import React from 'react';
-import { View, Text, StyleSheet, Platform, StatusBar } from 'react-native';
+import React, { useMemo } from 'react';
+import { View, Text, StyleSheet } from 'react-native';
+import { useApp } from '../store/AppContext';
+import { getThemeColors } from '../theme/tokens';
 
 export default function HeaderBar({ title }) {
-  const top = Platform.OS === 'android' ? (StatusBar.currentHeight || 0) : 0;
+  const { running } = useApp();
+  const colors = getThemeColors(running);
+  const styles = useMemo(() => createStyles(colors), [colors]);
+
   return (
-    <View style={[styles.wrap]}> 
+    <View style={styles.container}>
       <Text style={styles.title}>{title}</Text>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  wrap: { backgroundColor: '#ffffff', borderBottomWidth: 1, borderBottomColor: '#EAEAEA', paddingHorizontal: 12, paddingVertical: 6 },
-  title: { color: '#111', fontSize: 15, fontWeight: '800' },
+const createStyles = (colors) => StyleSheet.create({
+  container: {
+    height: 56,
+    backgroundColor: colors.surface,
+    justifyContent: 'center',
+    alignItems: 'flex-start',
+    paddingLeft: 16,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.border,
+  },
+  title: { color: colors.text, fontSize: 18, fontWeight: '700' },
 });

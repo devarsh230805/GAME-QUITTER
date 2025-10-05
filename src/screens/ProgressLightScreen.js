@@ -1,10 +1,11 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import HeaderBar from '../components/HeaderBar';
 
 export default function ProgressLightScreen() {
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>Progress Tracker</Text>
+      <HeaderBar title="Progress" />
       <View style={styles.card}>
         <View style={styles.mockChart} />
       </View>
