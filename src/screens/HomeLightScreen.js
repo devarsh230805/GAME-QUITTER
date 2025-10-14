@@ -1,6 +1,9 @@
 import React, { useMemo, useRef, useState } from 'react';
 import { View, Text, StyleSheet, Pressable, ScrollView, TextInput } from 'react-native';
 import HeaderBar from '../components/HeaderBar';
+import StyledCard from '../components/StyledCard';
+import StyledButton from '../components/StyledButton';
+import StyledProgressBar from '../components/StyledProgressBar';
 import { useApp } from '../store/AppContext';
 import { getThemeColors } from '../theme/tokens';
 
@@ -54,7 +57,7 @@ export default function HomeLightScreen({ openGameMode, openStats }) {
   }, [playLogs]);
 
   // Create dynamic styles based on theme
-  const dynamicStyles = useMemo(() => createStyles(themeColors), [themeColors]);
+  const dynamicStyles = useMemo(() => createStyles(themeColors, running), [themeColors, running]);
 
   return (
     <View style={dynamicStyles.container}>
@@ -63,46 +66,59 @@ export default function HomeLightScreen({ openGameMode, openStats }) {
       <ScrollView contentContainerStyle={dynamicStyles.containerContent}>
 
         {/* Progress Summary Card */}
-        <Pressable style={dynamicStyles.progressCard} onPress={() => openStats && openStats()}>
-          <View style={dynamicStyles.progressHeader}>
-            <Text style={dynamicStyles.progressTime}>
-              {Math.floor(todayMs / 3600000)}h {Math.floor((todayMs % 3600000) / 60000)}m
-            </Text>
-            <Text style={dynamicStyles.progressLabel}>Today</Text>
-          </View>
-          <View style={dynamicStyles.progressBarContainer}>
-            <View style={[dynamicStyles.progressBar, { width: `${Math.min(100, todayMs / Math.max(1, remainingMs + todayMs) * 100)}%` }]} />
-          </View>
-          <Text style={dynamicStyles.progressTarget}>Target: {Math.floor(remainingMs / 3600000) + Math.floor(todayMs / 3600000)}h</Text>
+        <Pressable onPress={() => openStats && openStats()}>
+          <StyledCard colors={themeColors} variant={running ? 'game' : 'default'}>
+            <View style={dynamicStyles.progressHeader}>
+              <Text style={dynamicStyles.cardTitle}>Stats</Text>
+              <Text style={dynamicStyles.progressTime}>
+                {Math.floor(todayMs / 3600000)}h {Math.floor((todayMs % 3600000) / 60000)}m
+              </Text>
+              <Text style={dynamicStyles.progressLabel}>Today</Text>
+            </View>
+            <StyledProgressBar 
+              progress={Math.min(1, todayMs / Math.max(1, remainingMs + todayMs))} 
+              colors={themeColors}
+              variant={running ? 'game' : 'default'}
+            />
+            <Text style={dynamicStyles.progressTarget}>Target: {Math.floor(remainingMs / 3600000) + Math.floor(todayMs / 3600000)}h</Text>
+          </StyledCard>
         </Pressable>
 
         {/* Game Mode Card */}
-        <View style={dynamicStyles.card}>
+        <StyledCard colors={themeColors} variant={running ? 'game' : 'default'}>
           <Text style={dynamicStyles.cardTitle}>Game Mode</Text>
-          <Text style={{ color: themeColors.text, marginBottom: 8 }}>
+          <Text style={{ color: themeColors.text, marginBottom: 12 }}>
             Remaining today: {Math.floor(remainingMs / 3600000)}h {Math.floor((remainingMs % 3600000) / 60000)}m
           </Text>
 
           {running ? (
-            <Pressable style={({ pressed }) => [dynamicStyles.cardBtn, pressed && dynamicStyles.cardBtnPressed]} onPress={stopSession}>
-              <Text style={dynamicStyles.cardBtnText}>Mark as Done</Text>
-            </Pressable>
+            <StyledButton 
+              title="Mark as Done" 
+              onPress={stopSession} 
+              colors={themeColors} 
+              variant="primary"
+              rectangular
+            />
           ) : remainingMs > 0 ? (
-            <Pressable style={({ pressed }) => [dynamicStyles.cardBtn, pressed && dynamicStyles.cardBtnPressed]} onPress={startSession}>
-              <Text style={dynamicStyles.cardBtnText}>Start</Text>
-            </Pressable>
+            <StyledButton 
+              title="Start" 
+              onPress={startSession} 
+              colors={themeColors} 
+              variant="primary"
+              rectangular
+            />
           ) : (
             <>
-              <Text style={{ color: themeColors.textDim }}>Budget used. You can still override from Game Mode.</Text>
-              <Pressable style={[dynamicStyles.muted, { marginTop: 8 }]} onPress={() => openGameMode && openGameMode()}>
-                <Text style={{ color: themeColors.textDim }}>Open full Game Mode</Text>
+              <Text style={{ color: themeColors.textDim, marginBottom: 8 }}>Budget used. You can still override from Game Mode.</Text>
+              <Pressable onPress={() => openGameMode && openGameMode()}>
+                <Text style={{ color: themeColors.textDim, textDecorationLine: 'underline' }}>Open full Game Mode</Text>
               </Pressable>
             </>
           )}
-        </View>
+        </StyledCard>
 
         {/* Today's Schedule */}
-        <View style={dynamicStyles.card}>
+        <StyledCard colors={themeColors} variant={running ? 'game' : 'default'}>
           <View style={dynamicStyles.sectionHeaderRow}>
             <Text style={dynamicStyles.cardTitle}>Today's Schedule</Text>
             <Pressable onPress={() => { setShowTaskInput(true); setTimeout(() => inputRef.current?.focus(), 0); }}>
@@ -138,13 +154,13 @@ export default function HomeLightScreen({ openGameMode, openStats }) {
               />
             </View>
           )}
-        </View>
+        </StyledCard>
       </ScrollView>
     </View>
   );
 }
 
-const createStyles = (colors) => StyleSheet.create({
+const createStyles = (colors, running) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   containerContent: { padding: 20, paddingBottom: 28 },
 
@@ -154,10 +170,10 @@ const createStyles = (colors) => StyleSheet.create({
     padding: 16,
     marginBottom: 16,
     shadowColor: '#000',
-    shadowOpacity: 0.07,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 6 },
-    elevation: 3,
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 4,
   },
   cardTitle: { fontSize: 16, fontWeight: '700', color: colors.text, marginBottom: 10, textAlign: 'left' },
 
@@ -169,6 +185,11 @@ const createStyles = (colors) => StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 18,
     backgroundColor: colors.primary,
+    shadowColor: 'transparent',
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    shadowOffset: { width: 0, height: 0 },
+    elevation: 0,
   },
   btnText: { color: colors.background, fontWeight: '700' },
 
@@ -180,32 +201,46 @@ const createStyles = (colors) => StyleSheet.create({
     borderRadius: 8,
     alignItems: 'center',
     marginTop: 6,
+    shadowColor: 'transparent',
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    shadowOffset: { width: 0, height: 0 },
+    elevation: 0,
   },
   cardBtnPressed: { backgroundColor: colors.primaryDim },
   cardBtnText: { color: colors.background, fontWeight: '800' },
 
   // Game Mode CTA
-  gameModeBtn: { backgroundColor: colors.primary, borderRadius: 12, paddingVertical: 12, alignItems: 'center', marginBottom: 12 },
+  gameModeBtn: {
+    backgroundColor: colors.primary,
+    paddingVertical: 12,
+    paddingHorizontal: 18,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginTop: 6,
+    shadowColor: 'transparent',
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    shadowOffset: { width: 0, height: 0 },
+    elevation: 0,
+  },
   gameModeBtnText: { color: colors.background, fontWeight: '800' },
 
-  // Progress Card (Android wellbeing style)
   progressCard: {
     backgroundColor: colors.surface,
     borderRadius: 16,
     padding: 20,
     marginBottom: 16,
     shadowColor: '#000',
-    shadowOpacity: 0.07,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 6 },
-    elevation: 3,
-    alignItems: 'center',
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 4,
   },
   progressHeader: { alignItems: 'center', marginBottom: 16 },
   progressTime: { fontSize: 36, fontWeight: '800', color: colors.text, marginBottom: 4 },
   progressLabel: { fontSize: 14, color: colors.textDim },
   progressBarContainer: { width: '100%', height: 8, backgroundColor: colors.border, borderRadius: 4, marginBottom: 8 },
-  progressBar: { height: '100%', backgroundColor: colors.primary, borderRadius: 4 },
   progressTarget: { fontSize: 12, color: colors.textDim },
 
   muted: { color: colors.textDim, marginTop: 6, textAlign: 'center' },
@@ -215,15 +250,15 @@ const createStyles = (colors) => StyleSheet.create({
   bar: { width: 18, borderRadius: 9, backgroundColor: colors.primary },
 
   taskRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8 },
-  checkbox: { width: 18, height: 18, borderRadius: 4, borderWidth: 2, borderColor: colors.primary, marginRight: 10 },
+  checkbox: { width: 18, height: 18, borderRadius: 4, borderWidth: 2, borderColor: colors.secondary, marginRight: 10 },
   checkboxOn: { backgroundColor: colors.primary },
   taskText: { color: colors.text },
   taskTextDone: { color: colors.textDim, textDecorationLine: 'line-through' },
-  taskRemove: { color: colors.primary, fontWeight: '800', paddingHorizontal: 8, paddingVertical: 4 },
+  taskRemove: { color: colors.secondary, fontWeight: '800', paddingHorizontal: 8, paddingVertical: 4 },
 
   // Header Add button and input styles
   sectionHeaderRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 },
-  addHeaderLink: { color: colors.primary, fontWeight: '800' },
+  addHeaderLink: { color: colors.secondary, fontWeight: '800' },
   addHeaderButton: { backgroundColor: colors.primary, paddingVertical: 8, paddingHorizontal: 14, borderRadius: 8 },
   addHeaderButtonPressed: { backgroundColor: colors.primaryDim },
   addHeaderButtonText: { color: colors.background, fontWeight: '800' },

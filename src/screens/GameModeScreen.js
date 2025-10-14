@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { View, Text, StyleSheet, Pressable, TextInput, Keyboard } from 'react-native';
 import HeaderBar from '../components/HeaderBar';
+import StyledButton from '../components/StyledButton';
 import { useApp } from '../store/AppContext';
 import { getThemeColors } from '../theme/tokens';
 
@@ -95,23 +96,27 @@ export default function GameModeScreen({ onClose, onGoToStats }) {
         {/* Budget-based session controls */}
         {step === 'main' && (
           <>
-            <Text style={[styles.title, running && { color: themeColors.text }]}>Game Mode</Text>
-            <Text style={[styles.body, running && { color: themeColors.textDim }, { marginBottom: 16 }]}>
-              Remaining today: {Math.floor(remainingBudgetMs() / 3600000)}h {Math.floor((remainingBudgetMs() % 3600000) / 60000)}m
-            </Text>
+            <View style={{ alignItems: 'center', marginBottom: 20 }}>
+              <Text style={[styles.body, running && { color: themeColors.textDim }, { fontSize: 14, marginBottom: 8 }]}>
+                Remaining today
+              </Text>
+              <Text style={[styles.title, running && { color: themeColors.text }, { fontSize: 36, fontWeight: '800' }]}>
+                {Math.floor(remainingBudgetMs() / 3600000)}h {Math.floor((remainingBudgetMs() % 3600000) / 60000)}m
+              </Text>
+            </View>
             
             {running ? (
               <Pressable
                 style={({ pressed }) => [
                   { backgroundColor: themeColors.primary, paddingVertical: 12, paddingHorizontal: 18, borderRadius: 8, alignItems: 'center', marginTop: 10 },
-                  pressed && { opacity: 0.9 }
+                  pressed && { backgroundColor: themeColors.primaryDim }
                 ]}
                 onPress={() => {
                   stopSession();
                   onGoToStats && onGoToStats();
                 }}
               >
-                <Text style={styles.actionText}>Stop & Mark as Done</Text>
+                <Text style={styles.actionTextPrimary}>Stop & Mark as Done</Text>
               </Pressable>
             ) : (
               shouldGatePlay() ? (
@@ -155,7 +160,7 @@ export default function GameModeScreen({ onClose, onGoToStats }) {
                   <Text style={styles.btnTxt}>No</Text>
                 </Pressable>
               )}
-              <Pressable style={({ pressed }) => [styles.btn, styles.yes, pressed && styles.btnPressed]} onPress={() => setStep('reason')}><Text style={styles.btnTxt}>Yes</Text></Pressable>
+              <Pressable style={({ pressed }) => [styles.btn, styles.yesRed, pressed && styles.btnPressed]} onPress={() => setStep('reason')}><Text style={styles.btnTxt}>Yes</Text></Pressable>
             </View>
           </>
         )}
@@ -189,7 +194,8 @@ export default function GameModeScreen({ onClose, onGoToStats }) {
               disabled={!canProceedReason}
               style={({ pressed }) => [
                 styles.primary,
-                pressed && styles.primaryPressed,
+                running && { backgroundColor: themeColors.primary },
+                pressed && (running ? { backgroundColor: themeColors.primaryDim } : styles.primaryPressed),
                 !canProceedReason && { opacity: 0.5 },
               ]}
               onPress={() => setStep('tasks')}
@@ -223,7 +229,7 @@ export default function GameModeScreen({ onClose, onGoToStats }) {
                   <Text style={styles.btnTxt}>OK, let&apos;s not play</Text>
                 </Pressable>
               )}
-              <Pressable style={({ pressed }) => [styles.btn, styles.yes, { marginLeft: 8 }, pressed && styles.btnPressed]} onPress={() => setStep('confess')}>
+              <Pressable style={({ pressed }) => [styles.btn, styles.yesRed, { marginLeft: 8 }, pressed && styles.btnPressed]} onPress={() => setStep('confess')}>
                 <Text style={styles.btnTxt}>I still wanted to play</Text>
               </Pressable>
             </View>
@@ -235,7 +241,11 @@ export default function GameModeScreen({ onClose, onGoToStats }) {
           <>
             <Text style={[styles.title, running && { color: themeColors.text }]}>If you still want to play, type this confession exactly to unlock:</Text>
             <Pressable
-              style={[styles.typeBox, showConfMistype && styles.typeBoxError]}
+              style={[
+                styles.typeBox,
+                running && { backgroundColor: 'transparent', borderColor: themeColors.border },
+                showConfMistype && (running ? { borderColor: themeColors.danger } : styles.typeBoxError),
+              ]}
               onPressIn={focusConfessionInput}
               onPress={focusConfessionInput}
               onPressOut={focusConfessionInput}
@@ -243,9 +253,9 @@ export default function GameModeScreen({ onClose, onGoToStats }) {
               accessibilityRole="button"
               accessibilityLabel="Confession input"
             >
-              <Text style={styles.typeLine}>
-                <Text style={styles.matched}>{CONFESSION.slice(0, confessionProgress)}</Text>
-                <Text style={styles.remaining}>{CONFESSION.slice(confessionProgress)}</Text>
+              <Text style={[styles.typeLine, running && { color: themeColors.text }]}>
+                <Text style={[styles.matched, running && { color: themeColors.text }]}>{CONFESSION.slice(0, confessionProgress)}</Text>
+                <Text style={[styles.remaining, running && { color: themeColors.textDim }]}>{CONFESSION.slice(confessionProgress)}</Text>
               </Text>
             </Pressable>
             <TextInput
@@ -260,12 +270,12 @@ export default function GameModeScreen({ onClose, onGoToStats }) {
               style={[styles.hiddenInput, { width: 1, height: 1, opacity: 0.01 }]}
             />
             {showConfMistype && (
-              <Text style={styles.hint}>Type exactly as shown above.</Text>
+              <Text style={[styles.hint, running && { color: themeColors.danger }]}>Type exactly as shown above.</Text>
             )}
             <Pressable
               disabled={!fullyMatchedConfession}
               style={({ pressed }) => [
-                styles.actionRed,
+                { backgroundColor: '#DC2626', paddingVertical: 12, paddingHorizontal: 18, borderRadius: 8, alignItems: 'center', marginTop: 12 },
                 pressed ? { opacity: 0.9 } : {},
                 !fullyMatchedConfession ? { opacity: 0.5 } : {},
               ]}
@@ -277,7 +287,7 @@ export default function GameModeScreen({ onClose, onGoToStats }) {
               <Text style={styles.actionText}>I still want to play</Text>
             </Pressable>
             {!!onClose && (
-              <Pressable style={({ pressed }) => [styles.actionBlack, pressed && { opacity: 0.9 }]} onPress={onClose}>
+              <Pressable style={({ pressed }) => [styles.actionBlack, running && { backgroundColor: themeColors.primary }, pressed && { opacity: 0.9 }]} onPress={onClose}>
                 <Text style={styles.actionText}>Stop</Text>
               </Pressable>
             )}
@@ -313,6 +323,7 @@ const styles = StyleSheet.create({
   btn: { flex: 1, paddingVertical: 12, borderRadius: 12, alignItems: 'center', borderWidth: 1, borderColor: '#E5E7EB', backgroundColor: '#fff' },
   btnPressed: { opacity: 0.9 },
   no: { backgroundColor: '#111', marginRight: 8 },
+  yesRed: { backgroundColor: '#DC2626', marginLeft: 8, marginRight: 0 },
   btnTxt: { color: '#fff', fontWeight: '700' },
   options: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 12 },
   opt: { paddingVertical: 10, paddingHorizontal: 14, borderRadius: 8, borderWidth: 1, borderColor: '#E5E7EB', marginRight: 8, marginBottom: 8, backgroundColor: '#FFF' },
@@ -332,6 +343,7 @@ const styles = StyleSheet.create({
   actionRed: { backgroundColor: '#DC2626', paddingVertical: 12, paddingHorizontal: 18, borderRadius: 8, alignItems: 'center', marginTop: 12 },
   actionBlack: { backgroundColor: '#111', paddingVertical: 12, paddingHorizontal: 18, borderRadius: 8, alignItems: 'center', marginTop: 10 },
   actionText: { color: '#fff', fontWeight: '800' },
+  actionTextPrimary: { color: '#6a7e6a', fontWeight: '800' },
   // Duration controls
   durationRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 10, marginBottom: 6 },
   durationValue: { marginHorizontal: 16, fontSize: 18, fontWeight: '800', color: '#111', minWidth: 70, textAlign: 'center' },

@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useRef } from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Pressable, Dimensions, FlatList } from 'react-native';
 import HeaderBar from '../components/HeaderBar';
 import { useApp } from '../store/AppContext';
 import { getThemeColors } from '../theme/tokens';
@@ -61,6 +61,25 @@ export default function StatsHistoryScreen({ onClose }) {
     const isToday = d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate();
     return isToday ? 'Today' : d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
   }, [days, selectedIdx]);
+
+  // Header text should show the selected bar's exact date or "Today" for today only
+  const selectedHeaderText = useMemo(() => {
+    const win = days[selectedIdx];
+    if (!win) return '';
+    const d = new Date(win.start);
+    const now = new Date();
+    
+    // Check if selected day is actually today
+    const isToday = d.getFullYear() === now.getFullYear() && 
+                    d.getMonth() === now.getMonth() && 
+                    d.getDate() === now.getDate();
+    
+    if (isToday) {
+      return 'Today';
+    }
+    
+    return d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+  }, [days, selectedIdx]);
   
   // Compute totals for current week's 7 days
   const weekTotals = useMemo(() => {
@@ -77,14 +96,17 @@ export default function StatsHistoryScreen({ onClose }) {
   }, [days, playLogs]);
   
   const maxMs = Math.max(1, ...weekTotals);
-  const dayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  // Generate labels directly from each day's date to avoid misalignment
+  const dayLabels = useMemo(() => days.map(({ start }) => {
+    const d = new Date(start);
+    return d.toLocaleDateString(undefined, { weekday: 'short' });
+  }), [days]);
 
   return (
     <View style={dynamicStyles.wrap}>
       <HeaderBar title="Stats" />
       <View style={dynamicStyles.content}>
         <View style={dynamicStyles.card}>
-          <Text style={dynamicStyles.title}>Stats & History</Text>
           
           {/* Progress Summary for selected day */}
           <View style={dynamicStyles.progressSection}>
@@ -96,48 +118,63 @@ export default function StatsHistoryScreen({ onClose }) {
             <Text style={dynamicStyles.targetLabel}>Target: {dailyTargetHours || 0}h</Text>
           </View>
           
-          {/* Weekly Chart with navigation buttons */}
+          {/* Swipeable Weekly Chart */}
           <View style={dynamicStyles.weeklySection}>
             <View style={dynamicStyles.weekHeader}>
-              <Pressable 
-                style={dynamicStyles.navButton} 
-                onPress={() => setWeekOffset(prev => Math.min(prev + 1, MAX_WEEKS - 1))}
-              >
-                <Text style={dynamicStyles.navButtonText}>‹</Text>
-              </Pressable>
-              <Text style={dynamicStyles.weeklyTitle}>
-                {weekOffset === 0 ? 'This week' : `${weekOffset} week${weekOffset > 1 ? 's' : ''} ago`}
-              </Text>
-              <Pressable 
-                style={dynamicStyles.navButton} 
-                onPress={() => setWeekOffset(prev => Math.max(prev - 1, 0))}
-              >
-                <Text style={dynamicStyles.navButtonText}>›</Text>
-              </Pressable>
+              <Text style={dynamicStyles.weeklyTitle}>{selectedHeaderText}</Text>
             </View>
-            <View style={dynamicStyles.chartContainer}>
-              <View style={dynamicStyles.barRow}>
-                {weekTotals.map((v, i) => {
-                  const isSel = i === selectedIdx;
-                  return (
-                    <Pressable key={i} style={dynamicStyles.barColumn} onPress={() => setSelectedIdx(i)}>
-                      <View style={dynamicStyles.barContainer}>
-                        <View
-                          style={[
-                            dynamicStyles.bar,
-                            {
-                              height: Math.max(4, (v / maxMs) * 80),
-                              backgroundColor: isSel ? themeColors.primary : themeColors.border,
-                            },
-                          ]}
-                        />
-                      </View>
-                      <Text style={dynamicStyles.dayLabel}>{dayLabels[i]}</Text>
-                    </Pressable>
-                  );
-                })}
-              </View>
-            </View>
+            <FlatList
+              data={Array.from({ length: MAX_WEEKS }, (_, i) => i)}
+              keyExtractor={(item) => `week-${item}`}
+              horizontal
+              pagingEnabled
+              showsHorizontalScrollIndicator={false}
+              snapToInterval={pageWidth - 36}
+              decelerationRate="fast"
+              bounces={false}
+              inverted
+              initialScrollIndex={0}
+              getItemLayout={(data, index) => ({
+                length: pageWidth - 36,
+                offset: (pageWidth - 36) * index,
+                index,
+              })}
+              onScrollToIndexFailed={(info) => {
+                setTimeout(() => {
+                  pagerRef.current?.scrollToIndex({ index: info.index, animated: false });
+                }, 100);
+              }}
+              ref={pagerRef}
+              onMomentumScrollEnd={(event) => {
+                const newWeekOffset = Math.round(event.nativeEvent.contentOffset.x / (pageWidth - 36));
+                setWeekOffset(newWeekOffset);
+              }}
+              renderItem={({ item: weekIdx }) => (
+                <View style={{ width: pageWidth - 36, paddingHorizontal: 8 }}>
+                  <View style={dynamicStyles.barRow}>
+                    {weekTotals.map((v, i) => {
+                      const isSel = i === selectedIdx;
+                      return (
+                        <Pressable key={i} style={dynamicStyles.barColumn} onPress={() => setSelectedIdx(i)}>
+                          <View style={dynamicStyles.barContainer}>
+                            <View
+                              style={[
+                                dynamicStyles.bar,
+                                {
+                                  height: Math.max(4, (v / maxMs) * 80),
+                                  backgroundColor: isSel ? themeColors.primary : themeColors.border,
+                                },
+                              ]}
+                            />
+                          </View>
+                          <Text style={dynamicStyles.dayLabel}>{dayLabels[i]}</Text>
+                        </Pressable>
+                      );
+                    })}
+                  </View>
+                </View>
+              )}
+            />
           </View>
           
           <View style={dynamicStyles.headerRow}>
@@ -197,8 +234,8 @@ const createStyles = (colors) => StyleSheet.create({
   progressSection: { alignItems: 'center', paddingVertical: 20, marginBottom: 20 },
   todayTime: { fontSize: 32, fontWeight: '800', color: colors.text, marginBottom: 4 },
   todayLabel: { fontSize: 14, color: colors.textDim, marginBottom: 16 },
-  progressBarContainer: { width: '100%', height: 8, backgroundColor: colors.border, borderRadius: 4, marginBottom: 8 },
-  progressBar: { height: '100%', backgroundColor: colors.primary, borderRadius: 4 },
+  progressBarContainer: { width: '100%', height: 8, backgroundColor: colors.border, borderRadius: 0, marginBottom: 8 },
+  progressBar: { height: '100%', backgroundColor: colors.primary, borderRadius: 0 },
   targetLabel: { fontSize: 12, color: colors.textDim },
   
   // Weekly Chart - Android Digital Wellbeing Style
@@ -211,7 +248,7 @@ const createStyles = (colors) => StyleSheet.create({
   barRow: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', height: 100, marginBottom: 8 },
   barColumn: { flex: 1, alignItems: 'center' },
   barContainer: { height: 80, justifyContent: 'flex-end', marginBottom: 8 },
-  bar: { width: 24, borderRadius: 12 },
+  bar: { width: 24, borderRadius: 0 },
   dayLabel: { fontSize: 12, color: colors.textDim, textAlign: 'center' },
   
   headerRow: { flexDirection: 'row', paddingBottom: 8, borderBottomWidth: 2, borderBottomColor: colors.border, marginBottom: 8 },

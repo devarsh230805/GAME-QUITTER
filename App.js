@@ -66,32 +66,29 @@ function AppInner() {
   };
 
   // Create dynamic styles
+  const bgColor = running ? themeColors.background : '#FFFFFF';
+  
   const dynamicStyles = {
     container: {
       flex: 1,
-      backgroundColor: themeColors.background,
+      backgroundColor: bgColor,
     },
     content: {
       flex: 1,
     },
     tabbar: {
       flexDirection: 'row',
-      backgroundColor: running ? themeColors.surface : '#ffffff',
+      backgroundColor: bgColor,
       borderTopWidth: 1,
-      borderTopColor: running ? themeColors.border : '#E0E0E0',
-      paddingVertical: 8,
+      borderTopColor: running ? themeColors.border : '#E5E7EB',
+      paddingVertical: 6,
       paddingHorizontal: 16,
       justifyContent: 'space-between',
-      shadowColor: '#000',
-      shadowOpacity: 0.1,
-      shadowRadius: 8,
-      shadowOffset: { width: 0, height: -2 },
-      elevation: 8,
     },
   };
 
   return (
-    <SafeAreaView style={dynamicStyles.container}>
+    <SafeAreaView style={[dynamicStyles.container, { backgroundColor: bgColor }]}>
       <StatusBar style={running ? "light" : "dark"} />
       {flow === 'splash' && (
         <SplashScreen onDone={() => setFlow(firstOpenDone ? 'main' : 'onboarding')} />
@@ -127,11 +124,10 @@ function AppInner() {
         <>
           <View style={dynamicStyles.content}>{renderMain()}</View>
           <View style={dynamicStyles.tabbar}>
-            <TabButton icon={<HouseIcon size={24} />} active={tab === 'home'} onPress={() => setTab('home')} themeColors={themeColors} /> 
-            <TabButton icon={<GameControllerIcon size={24} />} active={tab === 'game'} onPress={() => setTab('game')} themeColors={themeColors} />
-            {/* Log tab removed; logging is in Game Mode */}
-            <TabButton icon={<ChartLineIcon size={24} />} active={tab === 'stats'} onPress={() => setTab('stats')} themeColors={themeColors} />
-            <TabButton icon={<UserIcon size={24} />} active={tab === 'profile'} onPress={() => setTab('profile')} themeColors={themeColors} />
+            <TabButton icon={<HouseIcon size={22} />} active={tab === 'home'} onPress={() => setTab('home')} themeColors={themeColors} /> 
+            <TabButton icon={<GameControllerIcon size={22} />} active={tab === 'game'} onPress={() => setTab('game')} themeColors={themeColors} />
+            <TabButton icon={<ChartLineIcon size={22} />} active={tab === 'stats'} onPress={() => setTab('stats')} themeColors={themeColors} />
+            <TabButton icon={<UserIcon size={22} />} active={tab === 'profile'} onPress={() => setTab('profile')} themeColors={themeColors} />
           </View>
         </>
       )}
@@ -142,40 +138,40 @@ function AppInner() {
 function TabButton({ icon, onPress, active, themeColors }) {
   const { running } = useApp();
   
+  const iconColor = active 
+    ? (running ? '#0D0D0D' : themeColors.primary)
+    : (running ? themeColors.textDim : '#666');
+
   const dynamicTabStyles = {
     btn: {
       flex: 1,
       alignItems: 'center',
       justifyContent: 'center',
-      paddingVertical: spacing.xs,
-      borderRadius: 12,
-      marginHorizontal: spacing.xs,
+      paddingVertical: 10,
+      paddingHorizontal: 12,
+      borderRadius: 16,
+      marginHorizontal: 4,
       backgroundColor: 'transparent',
     },
     active: {
-      backgroundColor: running ? themeColors.primaryDim : '#F0F0F0',
+      backgroundColor: 'transparent',
     },
     pressed: {
       backgroundColor: running ? themeColors.border : '#E5E5E5',
-      opacity: 1,
-    },
-    icon: {
-      fontSize: 20,
-      color: running ? themeColors.textDim : '#666',
-    },
-    iconActive: {
-      color: running ? themeColors.primary : '#25D366',
-      fontWeight: 'bold',
+      opacity: 0.5,
     },
   };
 
   return (
     <Pressable onPress={onPress} style={({ pressed }) => [
       dynamicTabStyles.btn,
-      active && dynamicTabStyles.active,
       pressed && dynamicTabStyles.pressed,
     ]}>
-      <Text style={[dynamicTabStyles.icon, active && dynamicTabStyles.iconActive]}>{icon}</Text>
+      {React.cloneElement(icon, {
+        color: iconColor,
+        weight: active ? 'fill' : 'regular',
+        size: 22
+      })}
     </Pressable>
   );
 }

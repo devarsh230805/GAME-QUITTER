@@ -4,7 +4,9 @@ export const colors = {
   background: '#FFFFFF', // White background
   surface: '#FFFFFF', // White surface
   primary: '#111111', // Black buttons
+  secondary: '#4B5563', // Secondary action (gray) for default theme
   primaryDim: '#4B5563', // Dark gray for pressed states
+  secondaryDim: '#374151', // Darker gray for pressed secondary
   success: '#6EE7A0', // Keep success green
   warning: '#F2D36E', // Keep warning yellow
   danger: '#DC2626', // Red for danger
@@ -13,18 +15,20 @@ export const colors = {
   border: '#E5E7EB', // Light gray border
 };
 
-// Game mode theme colors (dark blue + warm orange)
+// Game mode theme colors (Neon Cyberpunk)
 export const gameModeColors = {
-  background: '#0A1628', // Deep dark blue
-  surface: '#1A2B42', // Darker blue surface
-  primary: '#FF8C42', // Warm orange
-  primaryDim: '#2D4A6B', // Muted blue
+  background: '#0D0D0D', // Near-black background
+  surface: '#0D0D0D', // Match background for seamless surfaces
+  primary: '#00E5FF', // Neon cyan primary
+  secondary: '#9C27B0', // Neon purple secondary
+  primaryDim: '#00B2CC', // Dimmed cyan for pressed
+  secondaryDim: '#6E1C7A', // Dimmed purple for pressed
   success: '#6EE7A0', // Keep success green
-  warning: '#FFB366', // Warmer orange for warnings
-  danger: '#FF6B6B', // Softer red
-  text: '#F0F4F8', // Light blue-white text
-  textDim: '#94A3B8', // Muted blue-gray text
-  border: '#334155', // Blue-gray border
+  warning: '#FF3B30', // Neon red for warnings/highlights
+  danger: '#FF3B30', // Neon red for danger
+  text: '#FFFFFF', // White primary text
+  textDim: '#B0BEC5', // Cool grey secondary text
+  border: '#1F2937', // Dark border that suits neon theme
 };
 
 // Function to get current theme colors

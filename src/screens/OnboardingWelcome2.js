@@ -10,13 +10,14 @@ import { styles } from './OnboardingWelcome2.styles';
 export default function OnboardingWelcome2({ onNext }) {
   return (
     <View style={styles.container}>
-      <View style={styles.spacer} />
-      <View style={styles.bottomContent}>
+      <View style={styles.heroContainer}>
         <Image
           source={require('../../pics/welcome2.jpeg')}
           style={styles.hero}
           resizeMode="contain"
         />
+      </View>
+      <View style={styles.bottomContent}>
         <Text style={styles.title} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.9}>
           Don’t let the game play you.
         </Text>
@@ -32,3 +33,4 @@ export default function OnboardingWelcome2({ onNext }) {
 }
 
 // styles imported from './OnboardingWelcome2.styles'
+

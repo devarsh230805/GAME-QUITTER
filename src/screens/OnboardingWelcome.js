@@ -12,8 +12,7 @@ export default function OnboardingWelcome({ onSkip, onNext }) {
 
   return (
     <View style={styles.container}>
-      <View style={styles.spacer} />
-      <View style={styles.bottomContent}>
+      <View style={styles.heroContainer}>
         {showHero && (
           <Image
             source={require('../../pics/WhatsApp Image 2025-09-26 at 1.34.07 AM.jpeg')}
@@ -22,6 +21,8 @@ export default function OnboardingWelcome({ onSkip, onNext }) {
             onError={() => setShowHero(false)}
           />
         )}
+      </View>
+      <View style={styles.bottomContent}>
         <Text style={styles.title} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8}>Life is waiting beyond the screen.</Text>
         <Text style={styles.body} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8}>Simple commitment to help you live more, play less.</Text>
         <Pressable style={({ pressed }) => [styles.primary, pressed && styles.primaryPressed]} onPress={onNext}>
@@ -33,3 +34,4 @@ export default function OnboardingWelcome({ onSkip, onNext }) {
 }
 
 // styles imported from './OnboardingWelcome.styles'
+

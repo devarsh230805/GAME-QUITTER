@@ -3,6 +3,8 @@ import { View, Text, StyleSheet, Pressable, TextInput, ScrollView, Dimensions, P
 import { useApp } from '../store/AppContext'; // Assuming this path is correct
 import Ionicons from 'react-native-vector-icons/Ionicons'; // For icons, install with `npm install react-native-vector-icons`
 import HeaderBar from '../components/HeaderBar';
+import StyledCard from '../components/StyledCard';
+import StyledButton from '../components/StyledButton';
 import { getThemeColors } from '../theme/tokens';
 
 const DAY_HOURS = Array.from({ length: 24 }, (_, i) => i);
