@@ -1,32 +1,26 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Pressable, Animated, Easing } from 'react-native';
+import AnimatedBlobs from '../components/AnimatedBlobs';
+import { useAuth } from '../context/AuthContext'; // ✅ use your AuthContext
 
 export default function OnboardingAuth({ onDone }) {
   const fade = useRef(new Animated.Value(0)).current;
   const slide = useRef(new Animated.Value(16)).current;
   const pulse = useRef(new Animated.Value(1)).current;
 
+  const { signInWithGoogle } = useAuth(); // ✅ only Google now
+
   useEffect(() => {
     Animated.parallel([
-      Animated.timing(fade, {
-        toValue: 1,
-        duration: 450,
-        easing: Easing.out(Easing.ease),
-        useNativeDriver: true,
-      }),
-      Animated.timing(slide, {
-        toValue: 0,
-        duration: 450,
-        easing: Easing.out(Easing.cubic),
-        useNativeDriver: true,
-      }),
+      Animated.timing(fade, { toValue: 1, duration: 450, easing: Easing.out(Easing.ease), useNativeDriver: true }),
+      Animated.timing(slide, { toValue: 0, duration: 450, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
     ]).start();
-    
+
     const loop = Animated.loop(
       Animated.sequence([
         Animated.timing(pulse, { toValue: 1.03, duration: 700, useNativeDriver: true }),
         Animated.timing(pulse, { toValue: 1.0, duration: 700, useNativeDriver: true }),
-      ]),
+      ])
     );
     loop.start();
     return () => loop.stop();
@@ -34,96 +28,37 @@ export default function OnboardingAuth({ onDone }) {
 
   return (
     <View style={styles.container}>
-      <View style={styles.spacer} />
-      <Animated.View 
-        style={[styles.bottomContent, { 
-          opacity: fade, 
-          transform: [{ translateY: slide }] 
-        }]}
-      >
-        <Text style={styles.title}>Sign in to continue</Text>
-        <Text style={styles.subtitle}>Choose your preferred sign-in method</Text>
+      <AnimatedBlobs intensity={1} />
 
-        <View style={styles.row}>
-          <Pressable style={styles.oauth}>
-            <Text style={styles.oauthText}>Google</Text>
-          </Pressable>
-          <Pressable style={styles.oauth}>
-            <Text style={styles.oauthText}>Apple</Text>
-          </Pressable>
-        </View>
+      <Animated.View style={{ opacity: fade, transform: [{ translateY: slide }], alignItems: 'center' }}>
+        <Text style={styles.title}>Welcome</Text>
+        <Text style={styles.subtitle}>Sign in with Google to continue</Text>
+      </Animated.View>
 
-        <Animated.View style={{ transform: [{ scale: pulse }] }}>
-          <Pressable 
-            style={styles.continueButton}
-            onPress={onDone}
-          >
-            <Text style={styles.continueButtonText}>Continue</Text>
-          </Pressable>
-        </Animated.View>
+      {/* Google OAuth button */}
+      <Animated.View style={{ transform: [{ scale: pulse }], marginTop: 20 }}>
+        <Pressable
+          style={styles.oauth}
+          onPress={async () => {
+            try {
+              await signInWithGoogle(); // ✅ Google login
+              onDone?.();
+            } catch (err) {
+              console.error('Google sign-in error:', err.message);
+            }
+          }}
+        >
+          <Text style={styles.oauthText}>Continue with Google</Text>
+        </Pressable>
       </Animated.View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { 
-    flex: 1, 
-    backgroundColor: '#FFFFFF', 
-    padding: 24 
-  },
-  spacer: { 
-    flex: 1 
-  },
-  bottomContent: { 
-    alignItems: 'center', 
-    justifyContent: 'flex-end', 
-    paddingBottom: 40 
-  },
-  title: { 
-    color: '#111', 
-    fontSize: 22, 
-    fontWeight: '800', 
-    marginBottom: 6, 
-    textAlign: 'center' 
-  },
-  subtitle: { 
-    color: '#444', 
-    textAlign: 'center', 
-    marginBottom: 24 
-  },
-  row: { 
-    flexDirection: 'row', 
-    width: '100%', 
-    marginBottom: 24,
-    justifyContent: 'space-between'
-  },
-  oauth: {
-    flex: 1,
-    backgroundColor: '#111',
-    borderWidth: 1,
-    borderColor: '#111',
-    paddingVertical: 14,
-    borderRadius: 12,
-    alignItems: 'center',
-    marginHorizontal: 8,
-  },
-  oauthText: { 
-    color: '#fff', 
-    fontWeight: '700', 
-    fontSize: 14 
-  },
-  continueButton: {
-    backgroundColor: '#25D366',
-    paddingVertical: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-    width: '100%',
-    marginTop: 16,
-  },
-  continueButtonText: {
-    color: 'white',
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
+  container: { flex: 1, backgroundColor: '#FFFFFF', padding: 24, justifyContent: 'center' },
+  title: { color: '#111', fontSize: 22, fontWeight: '800', marginBottom: 6, textAlign: 'center' },
+  subtitle: { color: '#444', textAlign: 'center', marginBottom: 18 },
+  oauth: { backgroundColor: '#F3F4F6', borderWidth: 1, borderColor: '#E5E7EB', paddingVertical: 14, borderRadius: 12, alignItems: 'center' },
+  oauthText: { color: '#111', fontWeight: '700', fontSize: 14 },
 });

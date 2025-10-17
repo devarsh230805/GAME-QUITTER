@@ -16,13 +16,18 @@ import GameModeScreen from './src/screens/GameModeScreen';
 import StatsHistoryScreen from './src/screens/StatsHistoryScreen';
 import ProfileEditorScreen from './src/screens/ProfileEditorScreen';
 import {HouseIcon, GameControllerIcon, ChartLineIcon, UserIcon} from 'phosphor-react-native';
-import {SafeAreaView} from 'react-native-safe-area-context';
+import { SafeAreaProvider,SafeAreaView } from 'react-native-safe-area-context';
+import { AuthProvider, useAuth } from './src/context/AuthContext';
 
 export default function App() {
   return (
-    <AppProvider>
-      <AppInner />
-    </AppProvider>
+   <SafeAreaProvider>
+    <AuthProvider>
+      <AppProvider>
+        <AppInner />
+      </AppProvider>
+      </AuthProvider>
+    </SafeAreaProvider>
   );
 }
 
@@ -34,6 +39,24 @@ function AppInner() {
   const [tab, setTab] = useState('home');
   const [flow, setFlow] = useState('splash'); // splash | onboarding | main
   const [step, setStep] = useState('welcome'); // welcome | welcome2 | welcome3 | quiz | ritual | auth | goals
+  const { user, loading } = useAuth();
+
+
+  useEffect(() => {
+    if (loading) return; // Wait until user session loads
+
+    if (user) {
+      // ✅ Logged-in user → go directly to main
+      setFlow('main');
+    } else if (firstOpenDone) {
+      // ✅ Already opened before → go to auth directly
+      setFlow('onboarding');
+      setStep('auth');
+    } else {
+      // 🆕 First time user → go through onboarding flow
+      setFlow('splash');
+    }
+  }, [user, loading, firstOpenDone]);
 
   useEffect(() => {
     if (flow === 'splash') {

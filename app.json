@@ -2,7 +2,8 @@
   "expo": {
     "name": "game-add-app",
     "slug": "game-add-app",
-    "scheme": "game-add-app",
+    "owner": "mann",
+    "scheme": "gameaddapp",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -18,7 +19,7 @@
       "bundleIdentifier": "com.jay1026v.gameaddapp"
     },
     "android": {
-      "package": "com.jay1026v.gameaddapp",
+      "package": "com.mann.gameaddapp",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
