@@ -1,17 +1,55 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet } from "react-native";
+import { spacing, typography, radii } from "../theme/tokens";
 
-export const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FFFFFF', padding: 24, justifyContent: 'center' },
-  title: { color: '#111', fontSize: 22, fontWeight: '800', marginBottom: 12, textAlign: 'center' },
-  body: { color: '#444', fontSize: 16, textAlign: 'center', marginBottom: 24 },
-  typeBox: { backgroundColor: '#F3F4F6', borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 12, paddingVertical: 16, paddingHorizontal: 18, alignSelf: 'stretch', alignItems: 'center' },
-  typeBoxError: { borderColor: '#DC2626' },
-  typeLine: { fontSize: 18, fontWeight: '700', letterSpacing: 0.3 },
-  matched: { color: '#111' },
-  remaining: { color: '#9CA3AF' },
-  hiddenInput: { position: 'absolute', width: 1, height: 1, opacity: 0 },
-  hint: { color: '#DC2626', fontWeight: '700', marginTop: 8 },
-  cta: { backgroundColor: '#111', paddingVertical: 14, borderRadius: 12, alignItems: 'center', marginTop: 24, alignSelf: 'stretch' },
-  ctaDisabled: { opacity: 0.5 },
-  ctaText: { color: '#fff', fontWeight: '800' },
-});
+export const createStyles = (colors) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+      padding: spacing.xl,
+      justifyContent: "center",
+    },
+    title: {
+      ...typography.title,
+      color: colors.text,
+      marginBottom: spacing.md,
+      textAlign: "center",
+    },
+    body: {
+      ...typography.body,
+      color: colors.textDim,
+      textAlign: "center",
+      marginBottom: spacing.xl,
+    },
+    typeBox: {
+      backgroundColor: colors.surface,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: radii.md,
+      paddingVertical: spacing.lg,
+      paddingHorizontal: spacing.xl,
+      alignSelf: "stretch",
+      alignItems: "center",
+    },
+    typeBoxError: { borderColor: colors.danger },
+    typeLine: { ...typography.body, fontWeight: "700", letterSpacing: 0.3 },
+    matched: { color: colors.primary },
+    remaining: { color: colors.textDim },
+    hiddenInput: { position: "absolute", width: 1, height: 1, opacity: 0 },
+    hint: {
+      ...typography.caption,
+      color: colors.danger,
+      fontWeight: "700",
+      marginTop: spacing.sm,
+    },
+    cta: {
+      backgroundColor: colors.primary,
+      paddingVertical: spacing.md,
+      borderRadius: radii.md,
+      alignItems: "center",
+      marginTop: spacing.xl,
+      alignSelf: "stretch",
+    },
+    ctaDisabled: { opacity: 0.5 },
+    ctaText: { ...typography.label, color: colors.surface, fontWeight: "800" },
+  });

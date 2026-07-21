@@ -1,94 +1,78 @@
-import { StyleSheet } from 'react-native';
-import { spacing, typography } from '../theme/tokens';
+import { StyleSheet } from "react-native";
+import { spacing, typography, radii, getThemeColors } from "../theme/tokens";
+
+const colors = getThemeColors(false); // Light mode for onboarding
 
 export const styles = StyleSheet.create({
   appIcon: {
-    borderRadius: 12,
+    borderRadius: radii.sm,
     marginRight: spacing.sm,
-    width: 24,    
+    width: 24,
   },
-
   appName: {
     ...typography.subtitle,
-    color: '#111',
-    fontWeight: '600',
-    fontSize: 20,
+    color: colors.text,
+    fontWeight: "700",
   },
-
-  
   container: {
     flex: 1,
-      justifyContent: 'space-between',
-  backgroundColor: '#FFFFFF',
+    justifyContent: "space-between",
+    backgroundColor: colors.background,
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.xxl,
   },
-
-  // Header (app icon + name)
-   
   header: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'center',
+    alignItems: "center",
+    flexDirection: "row",
+    justifyContent: "center",
     marginBottom: spacing.lg,
   },
-  
- 
-  // Hero Section
   heroContainer: {
     flex: 1,
-    justifyContent: 'flex-start',
-    alignItems: 'flex-start',
+    justifyContent: "flex-start",
+    alignItems: "flex-start",
   },
   hero: {
-    width: '100%',
-    height: 350, // responsive hero size
-    borderRadius: 16,
+    width: "100%",
+    height: 350,
+    borderRadius: radii.lg,
   },
-
-  // Bottom Content
   bottomContent: {
-    
     marginTop: spacing.lg,
     marginBottom: spacing.xl,
   },
   title: {
     ...typography.title,
-    color: '#111',
+    color: colors.text,
     marginBottom: spacing.sm,
-    textAlign: 'left',
-    fontSize: 24,
-    fontWeight: '700',
+    textAlign: "left",
   },
   body: {
     ...typography.body,
-    color: '#444',
-    textAlign: 'left',
+    color: colors.textDim,
+    textAlign: "left",
     marginBottom: spacing.lg,
-    fontSize: 16,
   },
-
-  // Buttons
   primary: {
-    backgroundColor: '#111',
-    borderRadius: 12,
+    backgroundColor: colors.primary,
+    borderRadius: radii.md,
     paddingVertical: spacing.md,
-    alignItems: 'center',
+    alignItems: "center",
     marginTop: spacing.md,
-    alignSelf: 'stretch',
+    alignSelf: "stretch",
   },
   primaryPressed: {
-    backgroundColor: '#4B5563',
+    backgroundColor: colors.primaryDim,
   },
   primaryText: {
     ...typography.subtitle,
-    color: '#fff',
-    fontWeight: '600',
+    color: colors.surface,
+    fontWeight: "700",
   },
   skipText: {
-    color: '#6B7280',
-    textAlign: 'center',
+    ...typography.caption,
+    color: colors.textDim,
+    textAlign: "center",
     marginTop: spacing.sm,
-    fontSize: 14,
   },
 });

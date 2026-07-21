@@ -1,136 +1,230 @@
-import React, { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
-import * as FileSystem from 'expo-file-system';
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useAuth } from "../context/AuthContext";
 
 const AppContext = createContext(null);
 
 export function AppProvider({ children }) {
+  const { profile: remoteProfile } = useAuth();
   const [streak, setStreak] = useState(0);
   const quotes = [
-    'The first step is deciding you can.',
-    'Small wins today become big wins tomorrow.',
-    'You are stronger than the urge.',
-    'Replace the habit, don\'t just remove it.',
-    'Choose progress over perfection.',
+    "The first step is deciding you can.",
+    "Small wins today become big wins tomorrow.",
+    "You are stronger than the urge.",
+    "Replace the habit, don't just remove it.",
+    "Choose progress over perfection.",
   ];
   const [quoteIdx, setQuoteIdx] = useState(0);
   const dailyQuote = quotes[quoteIdx % quotes.length];
   const [points, setPoints] = useState(0);
-  const [themeMode, setThemeMode] = useState('dark');
+  const [themeMode, setThemeMode] = useState("light");
+  const [timeTick, setTimeTick] = useState(0);
 
-  // --- New: user onboarding + profile (MVP local only)
+  // --- user onboarding + profile
   const [firstOpenDone, setFirstOpenDone] = useState(false);
-  const [signedIn, setSignedIn] = useState(false); // local stub auth
-  const [profileName, setProfileName] = useState('');
-  const [profileEmail, setProfileEmail] = useState('');
+  const [signedIn, setSignedIn] = useState(false);
+  const [profileName, setProfileName] = useState("");
+  const [profileEmail, setProfileEmail] = useState("");
   const [dailyTargetHours, setDailyTargetHours] = useState(0);
 
-  // --- New: daily schedule slots and tasks
-  // slot: { id, startMin, endMin, status: 'planned'|'done'|'missed' }
+  // Sync with remote profile if available
+  useEffect(() => {
+    if (remoteProfile) {
+      if (remoteProfile.display_name)
+        setProfileName(remoteProfile.display_name);
+      if (remoteProfile.email) setProfileEmail(remoteProfile.email);
+    }
+  }, [remoteProfile]);
+
+  // --- daily schedule slots and tasks
   const [schedule, setSchedule] = useState([
-    { id: 'slot-morning', startMin: 10 * 60, endMin: 11 * 60, status: 'planned' },
-    { id: 'slot-evening', startMin: 21 * 60, endMin: 22 * 60, status: 'planned' },
+    {
+      id: "slot-morning",
+      startMin: 10 * 60,
+      endMin: 11 * 60,
+      status: "planned",
+    },
+    {
+      id: "slot-evening",
+      startMin: 21 * 60,
+      endMin: 22 * 60,
+      status: "planned",
+    },
   ]);
-  // task: { id, text, completed }
   const [tasks, setTasks] = useState([
-    { id: 't1', text: 'Drink water', completed: false },
-    { id: 't2', text: '10 pushups', completed: false },
+    { id: "t1", text: "Drink water", completed: false },
+    { id: "t2", text: "10 pushups", completed: false },
   ]);
 
-  // --- New: play logs (+ confession)
-  // log: { id, start: ms, end: ms, onPlan: boolean, reason?: string, confession?: string }
   const [playLogs, setPlayLogs] = useState([]);
-
-  // --- New: user motivations (free text)
-  const [motivations, setMotivations] = useState('');
+  const [motivations, setMotivations] = useState("");
 
   const [challenges, setChallenges] = useState([
-    { id: 'walk-30', title: 'Walk for 30 minutes', completed: false, reward: 5 },
-    { id: 'text-friend', title: 'Text a friend to make plans', completed: false, reward: 5 },
-    { id: 'read-10', title: 'Read 10 pages', completed: false, reward: 5 },
+    {
+      id: "walk-30",
+      title: "Walk for 30 minutes",
+      completed: false,
+      reward: 5,
+    },
+    {
+      id: "text-friend",
+      title: "Text a friend to make plans",
+      completed: false,
+      reward: 5,
+    },
+    { id: "read-10", title: "Read 10 pages", completed: false, reward: 5 },
   ]);
 
-  // --- Real tracking engine ---
-  const [sessions, setSessions] = useState([]); // { start: number, end?: number }
+  const [sessions, setSessions] = useState([]);
   const [running, setRunning] = useState(false);
   const [currentStart, setCurrentStart] = useState(null);
   const tick = useRef(null);
 
-  // Persistence
-  const STORE_FILE = FileSystem.documentDirectory + 'gamequittr_store.json';
+  const STORE_KEY = "gamequittr_store";
+
+  // -- Robust Rehydration (Load from Device)
   useEffect(() => {
     (async () => {
       try {
-        const info = await FileSystem.getInfoAsync(STORE_FILE);
-        if (info.exists) {
-          const raw = await FileSystem.readAsStringAsync(STORE_FILE);
+        const raw = await AsyncStorage.getItem(STORE_KEY);
+        if (raw) {
           const data = JSON.parse(raw);
-          setSessions(Array.isArray(data.sessions) ? data.sessions : []);
+          console.log("[Storage] Loading persistent data...");
+
+          if (Array.isArray(data.sessions)) setSessions(data.sessions);
           setRunning(!!data.running);
           setCurrentStart(data.currentStart || null);
-          setStreak(typeof data.streak === 'number' ? data.streak : 0);
-          setPoints(typeof data.points === 'number' ? data.points : 0);
+          setStreak(typeof data.streak === "number" ? data.streak : 0);
+          setPoints(typeof data.points === "number" ? data.points : 0);
+
           if (Array.isArray(data.challenges)) setChallenges(data.challenges);
           if (Array.isArray(data.schedule)) setSchedule(data.schedule);
           if (Array.isArray(data.tasks)) setTasks(data.tasks);
           if (Array.isArray(data.playLogs)) setPlayLogs(data.playLogs);
-          if (typeof data.firstOpenDone === 'boolean') setFirstOpenDone(data.firstOpenDone);
-          if (typeof data.signedIn === 'boolean') setSignedIn(data.signedIn);
-          if (typeof data.profileName === 'string') setProfileName(data.profileName);
-          if (typeof data.profileEmail === 'string') setProfileEmail(data.profileEmail);
-          if (typeof data.motivations === 'string') setMotivations(data.motivations);
-          if (typeof data.dailyTargetHours === 'number') setDailyTargetHours(data.dailyTargetHours);
+
+          if (typeof data.firstOpenDone === "boolean")
+            setFirstOpenDone(data.firstOpenDone);
+          if (typeof data.signedIn === "boolean") setSignedIn(data.signedIn);
+          if (typeof data.profileName === "string")
+            setProfileName(data.profileName);
+          if (typeof data.profileEmail === "string")
+            setProfileEmail(data.profileEmail);
+          if (typeof data.motivations === "string")
+            setMotivations(data.motivations);
+          if (typeof data.dailyTargetHours === "number")
+            setDailyTargetHours(data.dailyTargetHours);
+          setThemeMode("light");
+
+          console.log("[Storage] Data loaded successfully.");
+        } else {
+          console.log("[Storage] No existing data found.");
         }
       } catch (e) {
-        // ignore
+        console.error("[Storage] Rehydration failed:", e);
       }
     })();
   }, []);
 
+  // -- Reliable Persistence (Save to Device)
   useEffect(() => {
-    (async () => {
+    const saveData = async () => {
       try {
-        const payload = JSON.stringify({ sessions, running, currentStart, streak, points, challenges, schedule, tasks, playLogs, firstOpenDone, signedIn, profileName, profileEmail, motivations, dailyTargetHours });
-        await FileSystem.writeAsStringAsync(STORE_FILE, payload);
+        const payload = JSON.stringify({
+          sessions,
+          running,
+          currentStart,
+          streak,
+          points,
+          challenges,
+          schedule,
+          tasks,
+          playLogs,
+          firstOpenDone,
+          signedIn,
+          profileName,
+          profileEmail,
+          motivations,
+          dailyTargetHours,
+          themeMode,
+        });
+        await AsyncStorage.setItem(STORE_KEY, payload);
       } catch (e) {
-        // ignore
+        console.error("[Storage] Save failed:", e);
       }
-    })();
-  }, [sessions, running, currentStart, streak, points, challenges, schedule, tasks, playLogs, firstOpenDone, signedIn, profileName, profileEmail, motivations, dailyTargetHours]);
+    };
+    saveData();
+  }, [
+    sessions,
+    running,
+    currentStart,
+    streak,
+    points,
+    challenges,
+    schedule,
+    tasks,
+    playLogs,
+    firstOpenDone,
+    signedIn,
+    profileName,
+    profileEmail,
+    motivations,
+    dailyTargetHours,
+    themeMode,
+  ]);
 
-  // start/stop timer
+  // --- Session Management (Gaming / Focus Tracking)
   function startSession() {
     if (running) return;
+    console.log("[Session] Starting new session...");
     const now = Date.now();
     setRunning(true);
     setCurrentStart(now);
-    // create a new unplanned log entry for budget-based flow
-    setPlayLogs((prev) => [...prev, { id: 'log-' + now, start: now, onPlan: false }]);
+    setPlayLogs((prev) => [
+      ...prev,
+      { id: "log-" + now, start: now, end: null, onPlan: false },
+    ]);
   }
 
   function stopSession() {
     if (!running || !currentStart) return;
     const now = Date.now();
+    console.log(
+      "[Session] Stopping session. Duration:",
+      Math.round((now - currentStart) / 1000),
+      "s",
+    );
     setRunning(false);
     setSessions((prev) => [...prev, { start: currentStart, end: now }]);
     setCurrentStart(null);
-    // close the last open play log
     setPlayLogs((prev) => {
-      const idxFromEnd = [...prev].reverse().findIndex((l) => l.end == null);
-      const realIdx = idxFromEnd >= 0 ? prev.length - 1 - idxFromEnd : -1;
-      if (realIdx === -1) return prev;
-      const copy = [...prev];
-      copy[realIdx] = { ...copy[realIdx], end: now };
-      return copy;
+      // Find the most recent active log and close it
+      const last = prev[prev.length - 1];
+      if (last && !last.end) {
+        const updated = [...prev];
+        updated[updated.length - 1] = { ...last, end: now };
+        return updated;
+      }
+      return prev;
     });
   }
 
-  // --- Auth/profile helpers ---
-  function logout() {
-    setSignedIn(false);
-    // keep local data; optionally clear sensitive fields
+  function clearAllData() {
+    console.log("[Storage] Clearing all local data...");
+    setSessions([]);
+    setRunning(false);
+    setCurrentStart(null);
+    setStreak(0);
+    setPoints(0);
+    setPlayLogs([]);
   }
 
-  // live ticker to force re-render each second while running
   useEffect(() => {
     if (!running) {
       if (tick.current) {
@@ -140,8 +234,7 @@ export function AppProvider({ children }) {
       return;
     }
     tick.current = setInterval(() => {
-      // no-op state update: rotate quote index modulo to trigger rerender minimally
-      setQuoteIdx((i) => i);
+      setTimeTick((t) => t + 1);
     }, 1000);
     return () => {
       if (tick.current) clearInterval(tick.current);
@@ -149,22 +242,18 @@ export function AppProvider({ children }) {
     };
   }, [running]);
 
-  // helpers: totals
-  function isSameDay(a, b) {
-    const da = new Date(a), db = new Date(b);
-    return da.getFullYear() === db.getFullYear() && da.getMonth() === db.getMonth() && da.getDate() === db.getDate();
-  }
-
   function msToday() {
     const now = Date.now();
     const startOfDay = new Date();
     startOfDay.setHours(0, 0, 0, 0);
     let total = 0;
     for (const s of sessions) {
-      const st = s.start, en = s.end || now;
+      const st = s.start,
+        en = s.end || now;
       if (st >= startOfDay.getTime()) total += Math.max(0, en - st);
     }
-    if (running && currentStart && currentStart >= startOfDay.getTime()) total += Math.max(0, now - currentStart);
+    if (running && currentStart && currentStart >= startOfDay.getTime())
+      total += Math.max(0, now - currentStart);
     return total;
   }
 
@@ -179,13 +268,20 @@ export function AppProvider({ children }) {
     const totals = days.map(({ dayStart, dayEnd }) => {
       let t = 0;
       for (const s of sessions) {
-        const st = s.start, en = s.end || now;
-        const overlap = Math.max(0, Math.min(en, dayEnd) - Math.max(st, dayStart));
+        const st = s.start,
+          en = s.end || now;
+        const overlap = Math.max(
+          0,
+          Math.min(en, dayEnd) - Math.max(st, dayStart),
+        );
         t += overlap;
       }
       if (running && currentStart) {
         const en = now;
-        const overlap = Math.max(0, Math.min(en, dayEnd) - Math.max(currentStart, dayStart));
+        const overlap = Math.max(
+          0,
+          Math.min(en, dayEnd) - Math.max(currentStart, dayStart),
+        );
         t += overlap;
       }
       return t;
@@ -193,7 +289,6 @@ export function AppProvider({ children }) {
     return totals;
   }
 
-  // Daily budget helpers (based on dailyTargetHours and msToday)
   function remainingBudgetMs() {
     const budget = Math.max(0, (dailyTargetHours || 0) * 3600000);
     return Math.max(0, budget - msToday());
@@ -223,7 +318,6 @@ export function AppProvider({ children }) {
     });
   }
 
-  // --- New: helper utilities ---
   function minutesNow() {
     const d = new Date();
     return d.getHours() * 60 + d.getMinutes();
@@ -235,29 +329,41 @@ export function AppProvider({ children }) {
   }
 
   function markSlotDone(slotId) {
-    setSchedule((prev) => prev.map((s) => (s.id === slotId ? { ...s, status: 'done' } : s)));
+    setSchedule((prev) =>
+      prev.map((s) => (s.id === slotId ? { ...s, status: "done" } : s)),
+    );
   }
 
   function markMissedSlotsUpToNow() {
     const nowM = minutesNow();
-    setSchedule((prev) => prev.map((s) => (s.endMin <= nowM && s.status === 'planned' ? { ...s, status: 'missed' } : s)));
+    setSchedule((prev) =>
+      prev.map((s) =>
+        s.endMin <= nowM && s.status === "planned"
+          ? { ...s, status: "missed" }
+          : s,
+      ),
+    );
   }
 
   function addSlot(startMin, endMin) {
-    const id = 'slot-' + Math.random().toString(36).slice(2, 8);
-    setSchedule((prev) => [...prev, { id, startMin, endMin, status: 'planned' }]);
+    const id = "slot-" + Math.random().toString(36).slice(2, 8);
+    setSchedule((prev) => [
+      ...prev,
+      { id, startMin, endMin, status: "planned" },
+    ]);
   }
 
   function removeSlot(id) {
     setSchedule((prev) => prev.filter((s) => s.id !== id));
   }
 
-  // --- New: tasks helpers ---
   function toggleTask(id) {
-    setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, completed: !t.completed } : t)));
+    setTasks((prev) =>
+      prev.map((t) => (t.id === id ? { ...t, completed: !t.completed } : t)),
+    );
   }
   function addTask(text) {
-    const id = 'task-' + Math.random().toString(36).slice(2, 8);
+    const id = "task-" + Math.random().toString(36).slice(2, 8);
     setTasks((prev) => [...prev, { id, text, completed: false }]);
   }
   function removeTask(id) {
@@ -267,15 +373,16 @@ export function AppProvider({ children }) {
     setTasks((prev) => prev.map((t) => ({ ...t, completed: false })));
   }
 
-  // --- New: Game Mode logic ---
   function startGamingOnPlan() {
     const slot = isNowInScheduledSlot();
     const now = Date.now();
     if (slot) {
-      // mark slot done when stopping
       setRunning(true);
       setCurrentStart(now);
-      setPlayLogs((prev) => [...prev, { id: 'log-' + now, start: now, onPlan: true }]);
+      setPlayLogs((prev) => [
+        ...prev,
+        { id: "log-" + now, start: now, onPlan: true },
+      ]);
       return { ok: true, onPlan: true, slot };
     }
     return { ok: false, onPlan: false };
@@ -285,7 +392,10 @@ export function AppProvider({ children }) {
     const now = Date.now();
     setRunning(true);
     setCurrentStart(now);
-    setPlayLogs((prev) => [...prev, { id: 'log-' + now, start: now, onPlan: false, reason }]);
+    setPlayLogs((prev) => [
+      ...prev,
+      { id: "log-" + now, start: now, onPlan: false, reason },
+    ]);
     return { ok: true };
   }
 
@@ -295,17 +405,19 @@ export function AppProvider({ children }) {
     setRunning(false);
     setSessions((prev) => [...prev, { start: currentStart, end: now }]);
     setPlayLogs((prev) => {
-      // attach end time and confession to last open log
       const lastIdx = [...prev].reverse().findIndex((l) => l.end == null);
       const realIdx = lastIdx >= 0 ? prev.length - 1 - lastIdx : -1;
       if (realIdx === -1) return prev;
       const last = prev[realIdx];
-      const updated = { ...last, end: now, confession: confessionText || last.confession };
+      const updated = {
+        ...last,
+        end: now,
+        confession: confessionText || last.confession,
+      };
       const copy = [...prev];
       copy[realIdx] = updated;
       return copy;
     });
-    // mark slot done if onPlan and within a slot
     const slot = isNowInScheduledSlot();
     if (slot) markSlotDone(slot.id);
     setCurrentStart(null);
@@ -313,88 +425,115 @@ export function AppProvider({ children }) {
 
   function retroMarkSlotAsDone(slotId) {
     markSlotDone(slotId);
-    // add a zero-length log entry to reflect completion
     const now = Date.now();
-    setPlayLogs((prev) => [...prev, { id: 'log-' + now, start: now, end: now, onPlan: true, reason: 'retro' }]);
+    setPlayLogs((prev) => [
+      ...prev,
+      { id: "log-" + now, start: now, end: now, onPlan: true, reason: "retro" },
+    ]);
   }
 
-  // derived stats
   const plannedToday = useMemo(() => schedule.length, [schedule]);
-  const doneToday = useMemo(() => schedule.filter((s) => s.status === 'done').length, [schedule]);
-  const plannedHoursSum = useMemo(() => schedule.reduce((sum, s) => sum + Math.max(0, (s.endMin - s.startMin) / 60), 0), [schedule]);
-  const remainingPlannedHours = useMemo(() => Math.max(0, dailyTargetHours - plannedHoursSum), [dailyTargetHours, plannedHoursSum]);
-
-  const value = useMemo(() => ({
-    streak,
-    incrementStreak,
-    dailyQuote,
-    rotateQuote,
-    points,
-    setPoints,
-    themeMode,
-    setThemeMode,
-    // profile
-    profileName,
-    setProfileName,
-    profileEmail,
-    setProfileEmail,
-    logout,
-    challenges,
-    toggleChallenge,
-    // tracker
-    sessions,
-    running,
-    startSession,
-    stopSession,
-    currentStart,
-    msToday,
-    msByDayForLast7,
-    // new state
-    firstOpenDone,
-    setFirstOpenDone,
-    signedIn,
-    setSignedIn,
-    dailyTargetHours,
-    setDailyTargetHours,
-    schedule,
-    setSchedule,
-    tasks,
-    setTasks,
-    playLogs,
-    setPlayLogs,
-    motivations,
-    setMotivations,
-    // helpers
-    minutesNow,
-    isNowInScheduledSlot,
-    remainingBudgetMs,
-    shouldGatePlay,
-    markSlotDone,
-    markMissedSlotsUpToNow,
-    addSlot,
-    removeSlot,
-    addTask,
-    removeTask,
-    toggleTask,
-    resetTasksForNewDay,
-    startGamingOnPlan,
-    forceStartGamingUnplanned,
-    stopGamingWithOptionalConfession,
-    retroMarkSlotAsDone,
-    plannedToday,
-    doneToday,
-    plannedHoursSum,
-    remainingPlannedHours,
-  }), [streak, dailyQuote, points, themeMode, challenges, sessions, running, currentStart
-  , firstOpenDone, signedIn, profileName, profileEmail, dailyTargetHours, schedule, tasks, playLogs]);
-
-  return (
-    <AppContext.Provider value={value}>{children}</AppContext.Provider>
+  const doneToday = useMemo(
+    () => schedule.filter((s) => s.status === "done").length,
+    [schedule],
   );
+  const plannedHoursSum = useMemo(
+    () =>
+      schedule.reduce(
+        (sum, s) => sum + Math.max(0, (s.endMin - s.startMin) / 60),
+        0,
+      ),
+    [schedule],
+  );
+  const remainingPlannedHours = useMemo(
+    () => Math.max(0, dailyTargetHours - plannedHoursSum),
+    [dailyTargetHours, plannedHoursSum],
+  );
+
+  const value = useMemo(
+    () => ({
+      streak,
+      incrementStreak,
+      dailyQuote,
+      rotateQuote,
+      points,
+      setPoints,
+      themeMode,
+      setThemeMode,
+      profileName,
+      setProfileName,
+      profileEmail,
+      setProfileEmail,
+      challenges,
+      toggleChallenge,
+      sessions,
+      running,
+      startSession,
+      stopSession,
+      currentStart,
+      msToday,
+      msByDayForLast7,
+      firstOpenDone,
+      setFirstOpenDone,
+      signedIn,
+      setSignedIn,
+      dailyTargetHours,
+      setDailyTargetHours,
+      schedule,
+      setSchedule,
+      tasks,
+      setTasks,
+      playLogs,
+      setPlayLogs,
+      motivations,
+      setMotivations,
+      minutesNow,
+      isNowInScheduledSlot,
+      remainingBudgetMs,
+      shouldGatePlay,
+      markSlotDone,
+      markMissedSlotsUpToNow,
+      addSlot,
+      removeSlot,
+      addTask,
+      removeTask,
+      toggleTask,
+      resetTasksForNewDay,
+      startGamingOnPlan,
+      forceStartGamingUnplanned,
+      stopGamingWithOptionalConfession,
+      retroMarkSlotAsDone,
+      plannedToday,
+      doneToday,
+      plannedHoursSum,
+      remainingPlannedHours,
+    }),
+    [
+      streak,
+      dailyQuote,
+      points,
+      themeMode,
+      challenges,
+      sessions,
+      running,
+      currentStart,
+      firstOpenDone,
+      signedIn,
+      profileName,
+      profileEmail,
+      dailyTargetHours,
+      schedule,
+      tasks,
+      playLogs,
+      remoteProfile,
+    ],
+  );
+
+  return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 }
 
 export function useApp() {
   const ctx = useContext(AppContext);
-  if (!ctx) throw new Error('useApp must be used within AppProvider');
+  if (!ctx) throw new Error("useApp must be used within AppProvider");
   return ctx;
 }

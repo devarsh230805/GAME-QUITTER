@@ -1,29 +1,162 @@
-import React from 'react';
-import { View, Text, StyleSheet, Switch } from 'react-native';
-import { colors, spacing, typography } from '../theme/tokens';
-import { useApp } from '../store/AppContext';
+import React from "react";
+import { View, Text, StyleSheet, Pressable, ScrollView } from "react-native";
+import { useAuth } from "../context/AuthContext";
+import { useApp } from "../store/AppContext";
+import {
+  getThemeColors,
+  typography,
+  spacing,
+  radii,
+  shadows,
+} from "../theme/tokens";
+import HeaderBar from "../components/HeaderBar";
+import { Ionicons } from "@expo/vector-icons";
+import ThemeShutter from "../components/ThemeShutter";
 
-export default function SettingsScreen() {
-  const { themeMode, setThemeMode } = useApp();
+export default function SettingsScreen({ openEditor }) {
+  const { user, profile, signOut } = useAuth();
+  const { running, themeMode, setThemeMode } = useApp();
+  const colors = getThemeColors(running, themeMode);
+
+  const getInitials = (name) => {
+    if (!name) return "U";
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .substring(0, 2);
+  };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Settings</Text>
-      <View style={styles.row}>
-        <Text style={styles.body}>Dark Mode</Text>
-        <Switch
-          value={themeMode === 'dark'}
-          onValueChange={(v) => setThemeMode(v ? 'dark' : 'light')}
-          thumbColor={themeMode === 'dark' ? colors.primary : '#ccc'}
-        />
-      </View>
+    <View style={[styles.container, { backgroundColor: "transparent" }]}>
+      <HeaderBar title="Settings" />
+      <ScrollView contentContainerStyle={styles.content}>
+        {/* Profile Card */}
+        <View
+          style={[
+            styles.profileCard,
+            { backgroundColor: colors.surface, borderColor: colors.border },
+            shadows.card,
+          ]}
+        >
+          <View style={[styles.avatar, { backgroundColor: colors.primary }]}>
+            <Text style={[styles.avatarText, { color: colors.surface }]}>
+              {getInitials(profile?.display_name || user?.email)}
+            </Text>
+          </View>
+          <View style={styles.profileInfo}>
+            <Text style={[styles.profileName, { color: colors.text }]}>
+              {profile?.display_name || "User"}
+            </Text>
+            <Text style={[styles.profileEmail, { color: colors.textDim }]}>
+              {user?.email}
+            </Text>
+          </View>
+          <Pressable
+            style={[styles.editIconBtn, { backgroundColor: colors.background }]}
+            onPress={openEditor}
+          >
+            <Ionicons name="pencil" size={18} color={colors.text} />
+          </Pressable>
+        </View>
+
+
+
+        <Text
+          style={[
+            styles.sectionTitle,
+            { color: colors.textDim, marginTop: spacing.xl },
+          ]}
+        >
+          Account
+        </Text>
+        <Pressable
+          style={[
+            styles.logoutButton,
+            { backgroundColor: colors.surface, borderColor: colors.danger },
+          ]}
+          onPress={signOut}
+        >
+          <Text style={[styles.logoutText, { color: colors.danger }]}>
+            Sign Out
+          </Text>
+        </Pressable>
+      </ScrollView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background, padding: spacing.xl },
-  title: { ...typography.title, color: colors.text, marginBottom: spacing.lg },
-  body: { ...typography.body, color: colors.textDim },
-  row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  container: { flex: 1 },
+  content: { padding: spacing.lg },
+  profileCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: spacing.xl,
+    borderRadius: radii.lg,
+    borderWidth: 1,
+    marginBottom: spacing.xl,
+  },
+  avatar: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: spacing.lg,
+  },
+  avatarText: {
+    fontSize: 24,
+    fontWeight: "800",
+  },
+  profileInfo: {
+    flex: 1,
+  },
+  profileName: {
+    ...typography.subtitle,
+    marginBottom: 4,
+  },
+  profileEmail: {
+    ...typography.caption,
+  },
+  editIconBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "transparent",
+  },
+  sectionTitle: {
+    ...typography.label,
+    marginBottom: spacing.sm,
+    marginLeft: 4,
+  },
+  settingsGroup: {
+    borderRadius: radii.md,
+    borderWidth: 1,
+    overflow: "hidden",
+  },
+  settingRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: spacing.lg,
+  },
+  settingLabel: {
+    ...typography.body,
+  },
+  logoutButton: {
+    padding: spacing.lg,
+    borderRadius: radii.md,
+    borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  logoutText: {
+    ...typography.body,
+    fontWeight: "700",
+  },
 });

@@ -1,7 +1,7 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { colors, spacing, typography, radii, shadows } from '../theme/tokens';
-import { useApp } from '../store/AppContext';
+import React from "react";
+import { View, Text, StyleSheet } from "react-native";
+import { colors, spacing, typography, radii, shadows } from "../theme/tokens";
+import { useApp } from "../store/AppContext";
 
 export default function DashboardScreen() {
   const { streak, dailyQuote, points } = useApp();
@@ -12,10 +12,12 @@ export default function DashboardScreen() {
 
       <View style={[styles.card, shadows.card]}>
         <Text style={styles.cardTitle}>Current Streak</Text>
-        <Text style={styles.streak}>{streak} day{streak === 1 ? '' : 's'}</Text>
+        <Text style={styles.streak}>
+          {streak} day{streak === 1 ? "" : "s"}
+        </Text>
       </View>
 
-      <View style={[styles.card, shadows.card]}> 
+      <View style={[styles.card, shadows.card]}>
         <Text style={styles.cardTitle}>Daily Quote</Text>
         <Text style={styles.body}>“{dailyQuote}”</Text>
       </View>
@@ -53,9 +55,9 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     borderWidth: 1,
     borderColor: colors.border,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
   cardTitle: {
     ...typography.subtitle,

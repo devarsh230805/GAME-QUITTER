@@ -1,39 +1,59 @@
 // Design tokens for GameQuittr - Stickman UI (Black & White)
 export const colors = {
-  // Default theme colors - Black & White "Stickman UI"
-  background: '#FFFFFF', // White background
-  surface: '#FFFFFF', // White surface
-  primary: '#111111', // Black buttons
-  secondary: '#4B5563', // Secondary action (gray) for default theme
-  primaryDim: '#4B5563', // Dark gray for pressed states
-  secondaryDim: '#374151', // Darker gray for pressed secondary
-  success: '#6EE7A0', // Keep success green
-  warning: '#F2D36E', // Keep warning yellow
-  danger: '#DC2626', // Red for danger
-  text: '#111111', // Black text
-  textDim: '#666666', // Gray text
-  border: '#E5E7EB', // Light gray border
+  // Minimalist Premium Light - Slate Black Accent
+  background: "#F8FAFC", // Slate 50
+  surface: "#FFFFFF",
+  primary: "#0F172A", // Slate 900 (Black Accent)
+  secondary: "#64748B", // Slate 500
+  primaryDim: "#1E293B", // Slate 800
+  secondaryDim: "#475569",
+  success: "#10B981", // Emerald 500
+  warning: "#F59E0B",
+  danger: "#475569", // Slate 600 (Removes red from light mode)
+  text: "#0F172A", // Slate 900
+  textDim: "#475569", // Slate 600
+  border: "#E2E8F0", // Slate 200
+  accent: "#0F172A",
 };
 
-// Game mode theme colors (Neon Cyberpunk)
+// Game mode theme colors (Light background & Orange/Yellow Accent)
 export const gameModeColors = {
-  background: '#0D0D0D', // Near-black background
-  surface: '#0D0D0D', // Match background for seamless surfaces
-  primary: '#00E5FF', // Neon cyan primary
-  secondary: '#9C27B0', // Neon purple secondary
-  primaryDim: '#00B2CC', // Dimmed cyan for pressed
-  secondaryDim: '#6E1C7A', // Dimmed purple for pressed
-  success: '#6EE7A0', // Keep success green
-  warning: '#FF3B30', // Neon red for warnings/highlights
-  danger: '#FF3B30', // Neon red for danger
-  text: '#FFFFFF', // White primary text
-  textDim: '#B0BEC5', // Cool grey secondary text
-  border: '#1F2937', // Dark border that suits neon theme
+  background: "#F8FAFC", // Light background
+  surface: "#FFFFFF", // White surface
+  primary: "#FDA524", // Amber Orange (Primary Accent)
+  secondary: "#64748B", // Slate 500
+  primaryDim: "#D97706",
+  secondaryDim: "#475569",
+  success: "#10B981",
+  warning: "#FDA524",
+  danger: "#475569",
+  text: "#0F172A", // Dark slate text
+  textDim: "#475569", // Slate text dim
+  border: "#E2E8F0", // Light border
+  accent: "#FDA524",
+};
+
+// Minimalist Premium Dark - Deep Navy Slate
+export const darkColors = {
+  background: "#0B0F19", // Deep dark blue-black
+  surface: "#1E293B", // Slate 800
+  primary: "#F8FAFC", // Slate 50 (White Accent)
+  secondary: "#94A3B8", // Slate 400
+  primaryDim: "#E2E8F0", // Slate 200
+  secondaryDim: "#64748B",
+  success: "#10B981",
+  warning: "#F59E0B",
+  danger: "#94A3B8", // Neutral Slate 400 (Removes red from dark mode)
+  text: "#F8FAFC", // Slate 50
+  textDim: "#94A3B8", // Slate 400
+  border: "#334155", // Slate 700
+  accent: "#F8FAFC",
 };
 
 // Function to get current theme colors
-export const getThemeColors = (isGameMode = false) => {
-  return isGameMode ? gameModeColors : colors;
+export const getThemeColors = (isGameMode = false, themeMode = "light") => {
+  if (isGameMode) return gameModeColors;
+  return themeMode === "dark" ? darkColors : colors;
 };
 
 export const spacing = {
@@ -49,34 +69,40 @@ export const radii = {
   sm: 8,
   md: 12,
   lg: 16,
+  xl: 24,
   pill: 999,
 };
 
 export const typography = {
   title: {
-    fontSize: 24,
-    fontWeight: '700',
+    fontSize: 28,
+    fontWeight: "800",
+    letterSpacing: -0.5,
   },
   subtitle: {
-    fontSize: 18,
-    fontWeight: '600',
+    fontSize: 20,
+    fontWeight: "700",
+    letterSpacing: -0.3,
   },
   body: {
     fontSize: 16,
-    fontWeight: '400',
+    fontWeight: "500",
+    lineHeight: 24,
   },
   caption: {
-    fontSize: 12,
-    fontWeight: '400',
+    fontSize: 13,
+    fontWeight: "400",
+    letterSpacing: 0.1,
+  },
+  label: {
+    fontSize: 14,
+    fontWeight: "600",
+    textTransform: "uppercase",
+    letterSpacing: 1,
   },
 };
 
 export const shadows = {
-  card: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 4,
-  },
+  card: {},
+  cyber: {},
 };

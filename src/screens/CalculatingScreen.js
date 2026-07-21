@@ -1,6 +1,6 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { View, Text } from 'react-native';
-import { styles } from './CalculatingScreen.styles';
+import React, { useEffect, useRef, useState } from "react";
+import { View, Text } from "react-native";
+import { styles } from "./CalculatingScreen.styles";
 
 /**
  * CalculatingScreen

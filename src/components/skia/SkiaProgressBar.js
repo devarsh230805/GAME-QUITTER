@@ -1,15 +1,22 @@
-import React from 'react';
-import { View, StyleSheet } from 'react-native';
-import { Canvas, RoundedRect, LinearGradient, vec, Blur, Group } from '@shopify/react-native-skia';
+import React from "react";
+import { View, StyleSheet } from "react-native";
+import {
+  Canvas,
+  RoundedRect,
+  LinearGradient,
+  vec,
+  Blur,
+  Group,
+} from "@shopify/react-native-skia";
 
-export default function SkiaProgressBar({ 
+export default function SkiaProgressBar({
   progress = 0, // 0 to 1
-  colors, 
-  variant = 'default',
+  colors,
+  variant = "default",
   width = 300,
-  height = 12
+  height = 12,
 }) {
-  const isGameMode = variant === 'game';
+  const isGameMode = variant === "game";
   const fillWidth = width * Math.min(1, Math.max(0, progress));
 
   return (
@@ -22,7 +29,7 @@ export default function SkiaProgressBar({
           width={width}
           height={height}
           r={height / 2}
-          color={isGameMode ? colors.border : '#E5E7EB'}
+          color={isGameMode ? colors.border : "#E5E7EB"}
         />
 
         {fillWidth > 0 && (
@@ -54,9 +61,10 @@ export default function SkiaProgressBar({
               <LinearGradient
                 start={vec(0, 0)}
                 end={vec(fillWidth, 0)}
-                colors={isGameMode 
-                  ? [colors.primary, colors.warning]
-                  : [colors.primary, colors.primary]
+                colors={
+                  isGameMode
+                    ? [colors.primary, colors.warning]
+                    : [colors.primary, colors.primary]
                 }
               />
             </RoundedRect>
@@ -83,6 +91,6 @@ const styles = StyleSheet.create({
     marginVertical: 8,
   },
   canvas: {
-    position: 'absolute',
+    position: "absolute",
   },
 });

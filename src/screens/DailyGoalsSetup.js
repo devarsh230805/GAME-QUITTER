@@ -14,10 +14,13 @@ import HeaderBar from "../components/HeaderBar";
 import { useApp } from "../store/AppContext";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-const HOURS = Array.from({ length: 9 }, (_, i) => i); // 0..8 hours cap
-const DAY_HOURS = Array.from({ length: 24 }, (_, i) => i); // 0..23
+import { spacing, typography, radii, shadows } from "../theme/tokens";
+import StyledButton from "../components/StyledButton";
+import { Ionicons } from "@expo/vector-icons";
 
-export default function DailyGoalsSetup({ onDone }) {
+export default function DailyGoalsSetup({ onDone, themeColors, onBack }) {
+  const styles = useMemo(() => createStyles(themeColors), [themeColors]);
+  const HOURS = Array.from({ length: 9 }, (_, i) => i);
   const { setSchedule, tasks, setTasks, setDailyTargetHours } = useApp();
   const [targetHours, setTargetHours] = useState(3);
   const [slots, setSlots] = useState([]); // {startMin: int, endMin: int}
@@ -42,7 +45,7 @@ export default function DailyGoalsSetup({ onDone }) {
 
   const totalPlannedMin = useMemo(
     () => slots.reduce((s, x) => s + (x.endMin - x.startMin), 0),
-    [slots]
+    [slots],
   );
   const remainingMin = Math.max(0, targetHours * 60 - totalPlannedMin);
   const overLimit = totalPlannedMin > targetHours * 60;
@@ -73,8 +76,10 @@ export default function DailyGoalsSetup({ onDone }) {
     if (endMin > 24 * 60) return;
     // prevent overlap (minutes)
     for (const s of slots) {
-      const a1 = s.startMin, a2 = s.endMin;
-      const b1 = startMin, b2 = endMin;
+      const a1 = s.startMin,
+        a2 = s.endMin;
+      const b1 = startMin,
+        b2 = endMin;
       const overlap = Math.max(0, Math.min(a2, b2) - Math.max(a1, b1));
       if (overlap > 0) {
         setCenterError("This overlaps another slot.");
@@ -89,7 +94,7 @@ export default function DailyGoalsSetup({ onDone }) {
       return;
     }
     setSlots((prev) =>
-      [...prev, { startMin, endMin }].sort((a, b) => a.startMin - b.startMin)
+      [...prev, { startMin, endMin }].sort((a, b) => a.startMin - b.startMin),
     );
   }
 
@@ -145,9 +150,80 @@ export default function DailyGoalsSetup({ onDone }) {
 
   return (
     <SafeAreaView
-      style={styles.container}
+      style={[styles.container, { backgroundColor: "transparent" }]}
     >
-      <HeaderBar title="Daily Goals" />
+      {/* App Header */}
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          marginBottom: spacing.sm,
+          paddingHorizontal: spacing.lg,
+          paddingTop: spacing.md,
+        }}
+      >
+        {!!onBack && (
+          <Pressable
+            onPress={onBack}
+            style={{ padding: 4, marginRight: spacing.sm }}
+          >
+            <Ionicons name="arrow-back" size={20} color={themeColors.text} />
+          </Pressable>
+        )}
+        <View
+          style={{
+            backgroundColor: themeColors.primary,
+            width: 28,
+            height: 28,
+            borderRadius: radii.sm,
+            alignItems: "center",
+            justifyContent: "center",
+            marginRight: spacing.sm,
+          }}
+        >
+          <Text
+            style={{
+              color: themeColors.surface,
+              fontSize: 10,
+              fontWeight: "bold",
+            }}
+          >
+            GQ
+          </Text>
+        </View>
+        <Text
+          style={{
+            ...typography.subtitle,
+            color: themeColors.text,
+            fontWeight: "700",
+          }}
+        >
+          GameQuitter
+        </Text>
+      </View>
+
+      {/* Step Completion Bar - All 7 steps filled (final step) */}
+      <View
+        style={{
+          flexDirection: "row",
+          paddingHorizontal: spacing.lg,
+          marginBottom: spacing.md,
+          gap: 4,
+        }}
+      >
+        {[1, 2, 3, 4, 5, 6, 7].map((step) => (
+          <View
+            key={step}
+            style={{
+              flex: 1,
+              height: 4,
+              borderRadius: 2,
+              backgroundColor: themeColors.primary,
+              opacity: step === 7 ? 1 : 0.4,
+            }}
+          />
+        ))}
+      </View>
 
       <ScrollView style={styles.mainContent}>
         <Animated.View
@@ -195,9 +271,14 @@ export default function DailyGoalsSetup({ onDone }) {
               totalPlannedMin >= targetHours * 60 && styles.addSlotBtnDisabled,
             ]}
             onPress={() => {
-              const remainingHours = Math.max(0, targetHours - totalPlannedMin / 60);
+              const remainingHours = Math.max(
+                0,
+                targetHours - totalPlannedMin / 60,
+              );
               if (remainingHours <= 0 || remainingMin <= 0) {
-                setCenterError("No hours remaining. Increase hours or remove a slot.");
+                setCenterError(
+                  "No hours remaining. Increase hours or remove a slot.",
+                );
                 setTimeout(() => setCenterError(""), 1500);
                 return;
               }
@@ -221,7 +302,8 @@ export default function DailyGoalsSetup({ onDone }) {
           {slots.map((s, idx) => (
             <View key={idx} style={styles.slotRow}>
               <Text style={styles.slotTxt}>
-                {toHMMin(s.startMin)} - {toHMMin(s.endMin)} ({durationLabel(s.endMin - s.startMin)})
+                {toHMMin(s.startMin)} - {toHMMin(s.endMin)} (
+                {durationLabel(s.endMin - s.startMin)})
               </Text>
               <Pressable onPress={() => removeSlot(idx)}>
                 <Text style={styles.remove}>Remove</Text>
@@ -274,17 +356,14 @@ export default function DailyGoalsSetup({ onDone }) {
           ))}
         </Animated.View>
 
-        <Pressable
-          style={({ pressed }) => [
-            styles.cta,
-            overLimit && { opacity: 0.4 },
-            pressed && styles.ctaPressed,
-          ]}
+        <StyledButton
+          title="Start your first day"
           onPress={save}
+          colors={themeColors}
           disabled={overLimit}
-        >
-          <Text style={styles.ctaTxt}>Start your first day</Text>
-        </Pressable>
+          rectangular
+          style={{ marginTop: spacing.md, marginBottom: spacing.xl }}
+        />
 
         {!!centerError && (
           <View style={styles.centerError}>
@@ -332,17 +411,26 @@ export default function DailyGoalsSetup({ onDone }) {
             display="default"
             onChange={(event, date) => {
               setShowStartPicker(false);
-              if (!date || event?.type === 'dismissed') return;
+              if (!date || event?.type === "dismissed") return;
               const start = new Date(date);
               // Snap to nearest 15 minutes
               const m = start.getMinutes();
               const snapped = Math.round(m / 15) * 15;
               start.setMinutes(snapped, 0, 0);
-              const remainingHours = Math.max(0, targetHours - totalPlannedMin / 60);
+              const remainingHours = Math.max(
+                0,
+                targetHours - totalPlannedMin / 60,
+              );
               const end = new Date(start);
               // Default end = start + min(remaining, 1h) rounded to 15m, cap to 23:45
-              const stepMin = Math.max(15, Math.min(60, Math.round(remainingHours * 60 / 15) * 15));
-              const endMinutes = Math.min(23 * 60 + 45, start.getHours() * 60 + start.getMinutes() + stepMin);
+              const stepMin = Math.max(
+                15,
+                Math.min(60, Math.round((remainingHours * 60) / 15) * 15),
+              );
+              const endMinutes = Math.min(
+                23 * 60 + 45,
+                start.getHours() * 60 + start.getMinutes() + stepMin,
+              );
               end.setHours(Math.floor(endMinutes / 60), endMinutes % 60, 0, 0);
               setTempStartDate(start);
               setTempEndDate(end);
@@ -358,13 +446,14 @@ export default function DailyGoalsSetup({ onDone }) {
             display="default"
             onChange={(event, date) => {
               setShowEndPicker(false);
-              if (!date || event?.type === 'dismissed') return;
+              if (!date || event?.type === "dismissed") return;
               const picked = new Date(date);
               // Snap to nearest 15 minutes
               const m = picked.getMinutes();
               const snapped = Math.round(m / 15) * 15;
               picked.setMinutes(snapped, 0, 0);
-              const startMin = tempStartDate.getHours() * 60 + tempStartDate.getMinutes();
+              const startMin =
+                tempStartDate.getHours() * 60 + tempStartDate.getMinutes();
               const endMin = picked.getHours() * 60 + picked.getMinutes();
               if (endMin <= startMin) {
                 setCenterError("End time must be after start time.");
@@ -394,7 +483,7 @@ function toHM(h) {
 function toHMMin(min) {
   const h = Math.floor(min / 60);
   const m = min % 60;
-  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
 }
 
 // Human label for a duration in minutes, e.g., 0 -> 0m, 15 -> 15m, 90 -> 1h 30m
@@ -404,8 +493,8 @@ function durationLabel(min) {
   const parts = [];
   if (h > 0) parts.push(`${h}h`);
   if (m > 0) parts.push(`${m}m`);
-  if (parts.length === 0) return '0m';
-  return parts.join(' ');
+  if (parts.length === 0) return "0m";
+  return parts.join(" ");
 }
 
 function WheelPicker({ data, value, onChange }) {
@@ -541,213 +630,220 @@ function ClockModal({ remaining, onCancel, onConfirm }) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#FFFFFF"},
-  mainContent: { padding: 20 },
-  h2: { fontSize: 16, fontWeight: "700", color: "#111" },
-  label: { color: "#111", marginBottom: 6 },
-  note: { color: "#6B7280", marginTop: 6 },
-  error: { color: "#DC2626", marginTop: 6, fontWeight: "700" },
-  card: {
-    backgroundColor: "#fff",
-    borderRadius: 16,
-    padding: 16,
-    shadowColor: "#000",
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 4 },
-    borderWidth: 1,
-    borderColor: "#F3F4F6",
-    marginBottom: 16,
-  },
-  cardTitle: {
-    color: "#111",
-    fontSize: 16,
-    fontWeight: "700",
-    marginBottom: 10,
-  },
-  muted: { color: "#9CA3AF" },
-  input: {
-    backgroundColor: "#F3F4F6",
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
-    color: "#111",
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    marginTop: 8,
-  },
-  cta: {
-    backgroundColor: "#111",
-    paddingVertical: 14,
-    borderRadius: 8,
-    alignItems: "center",
-    marginBottom: 30,
-  },
-  ctaPressed: { backgroundColor: "#4B5563" },
-  ctaTxt: { color: "#fff", fontWeight: "800" },
-  hoursStepper: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    marginTop: 6,
-    marginBottom: 4,
-  },
-  hourBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 8,
-    backgroundColor: "#111",
-    alignItems: "center",
-    justifyContent: "center",
-    marginHorizontal: 10,
-  },
-  hourBtnPressed: { backgroundColor: "#4B5563" },
-  hourBtnTxt: { color: "#fff", fontSize: 20, fontWeight: "800" },
-  hourValue: {
-    minWidth: 64,
-    textAlign: "center",
-    fontSize: 18,
-    fontWeight: "800",
-    color: "#111",
-  },
-  inlineForm: { flexDirection: "row", alignItems: "center", marginTop: 8 },
-  taskInput: {
-    flex: 1,
-    backgroundColor: "#F3F4F6",
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
-    color: "#111",
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    marginRight: 8,
-  },
-  addSmall: {
-    backgroundColor: "#111",
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  addSmallPressed: { backgroundColor: "#4B5563" },
-  addSmallTxt: { color: "#fff", fontWeight: "800" },
-  selectBtn: {
-    backgroundColor: "#111",
-    borderRadius: 12,
-    paddingVertical: 12,
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  selectBtnPressed: { backgroundColor: "#4B5563" },
-  selectBtnTxt: { color: "#fff", fontWeight: "800" },
-  addSlotBtn: {
-    backgroundColor: "#111",
-    borderRadius: 12,
-    paddingVertical: 12,
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  addSlotBtnPressed: { backgroundColor: "#4B5563" },
-  addSlotBtnDisabled: { opacity: 0.4 },
-  addSlotTxt: { color: "#fff", fontWeight: "800" },
-  slotRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginTop: 8,
-  },
-  slotTxt: { color: "#111", fontWeight: "600" },
-  remove: { color: "#111" },
+const createStyles = (colors) =>
+  StyleSheet.create({
+    container: { flex: 1, backgroundColor: colors.background },
+    mainContent: { padding: spacing.lg },
+    h2: { ...typography.subtitle, color: colors.text },
+    label: { color: colors.text, marginBottom: spacing.xs },
+    note: {
+      ...typography.caption,
+      color: colors.textDim,
+      marginTop: spacing.xs,
+    },
+    error: { color: colors.danger, marginTop: spacing.xs, fontWeight: "700" },
+    card: {
+      backgroundColor: colors.surface,
+      borderRadius: radii.lg,
+      padding: spacing.lg,
+      borderWidth: 1,
+      borderColor: colors.border,
+      marginBottom: spacing.lg,
+      ...shadows.card,
+    },
+    cardTitle: {
+      color: colors.text,
+      ...typography.subtitle,
+      marginBottom: spacing.sm,
+    },
+    muted: { color: colors.textDim },
+    input: {
+      backgroundColor: colors.background,
+      borderWidth: 1,
+      borderColor: colors.border,
+      color: colors.text,
+      borderRadius: radii.md,
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.sm,
+      marginTop: spacing.xs,
+    },
+    cta: {
+      backgroundColor: colors.primary,
+      paddingVertical: spacing.md,
+      paddingHorizontal: spacing.xl,
+      borderRadius: radii.full,
+      alignItems: "center",
+      marginBottom: spacing.xl,
+      ...shadows.md,
+    },
+    ctaPressed: { opacity: 0.8 },
+    ctaTxt: { color: colors.background, fontWeight: "800", fontSize: 16 },
+    hoursStepper: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      marginTop: spacing.sm,
+      marginBottom: spacing.xs,
+    },
+    hourBtn: {
+      width: 48,
+      height: 48,
+      borderRadius: radii.md,
+      backgroundColor: colors.primary,
+      alignItems: "center",
+      justifyContent: "center",
+      marginHorizontal: spacing.md,
+    },
+    hourBtnPressed: { opacity: 0.7 },
+    hourBtnTxt: { color: colors.background, fontSize: 24, fontWeight: "800" },
+    hourValue: {
+      minWidth: 64,
+      textAlign: "center",
+      fontSize: 22,
+      fontWeight: "800",
+      color: colors.text,
+    },
+    inlineForm: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginTop: spacing.sm,
+    },
+    taskInput: {
+      flex: 1,
+      backgroundColor: colors.background,
+      borderWidth: 1,
+      borderColor: colors.border,
+      color: colors.text,
+      borderRadius: radii.md,
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.md,
+      marginRight: spacing.sm,
+    },
+    addSmall: {
+      backgroundColor: colors.primary,
+      paddingVertical: spacing.md,
+      paddingHorizontal: spacing.lg,
+      borderRadius: radii.md,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    addSmallPressed: { opacity: 0.7 },
+    addSmallTxt: { color: colors.background, fontWeight: "800" },
+    addSlotBtn: {
+      backgroundColor: colors.primary,
+      borderRadius: radii.md,
+      paddingVertical: spacing.md,
+      alignItems: "center",
+      marginBottom: spacing.sm,
+    },
+    addSlotBtnPressed: { opacity: 0.7 },
+    addSlotBtnDisabled: { opacity: 0.3 },
+    addSlotTxt: { color: colors.background, fontWeight: "800" },
+    slotRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      marginTop: spacing.sm,
+      paddingVertical: spacing.xs,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    slotTxt: { color: colors.text, fontWeight: "600" },
+    remove: { color: colors.danger, fontWeight: "600" },
 
-  taskTxt: { color: "#111", flex: 1, marginRight: 10 },
-  taskRemove: {
-    color: "#111",
-    fontWeight: "800",
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-  },
-  wheelWrap: {
-    height: 120,
-    borderRadius: 12,
-    backgroundColor: "#F9FAFB",
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
-    overflow: "hidden",
-  },
-  wheelItem: { alignItems: "center", justifyContent: "center" },
-  wheelTxt: { color: "#111", fontSize: 16, fontWeight: "700" },
-  wheelOverlay: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    height: 40,
-    borderTopWidth: 1,
-    borderBottomWidth: 1,
-    borderColor: "#E5E7EB",
-  },
-  sheetWrap: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    top: 0,
-    bottom: 0,
-    backgroundColor: "rgba(0,0,0,0.5)",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  sheet: {
-    width: "92%",
-    backgroundColor: "#FFFFFF",
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
-    padding: 18,
-  },
-  sheetTitle: { color: "#111", fontWeight: "800", marginBottom: 10 },
-  sheetClose: { textAlign: "center", color: "#111", marginTop: 10 },
-  centerError: {
-    position: "absolute",
-    left: 20,
-    right: 20,
-    top: "45%",
-    backgroundColor: "#DC2626",
-    paddingVertical: 12,
-    borderRadius: 10,
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOpacity: 0.15,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 4,
-  },
-  centerErrorTxt: { color: "#fff", fontWeight: "800" },
-  clock: {
-    alignSelf: "center",
-    position: "relative",
-    backgroundColor: "#FFF",
-    borderRadius: 999,
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
-    marginVertical: 10,
-  },
-  clockDot: {
-    position: "absolute",
-    width: 40,
-    height: 40,
-    marginLeft: -20,
-    marginTop: -20,
-    borderRadius: 20,
-    borderWidth: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  clockTxt: { fontSize: 12, fontWeight: "700" },
-  taskRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginTop: 8,
-  },
-});
+    taskTxt: { color: colors.text, flex: 1, marginRight: spacing.md },
+    taskRemove: {
+      color: colors.danger,
+      fontWeight: "800",
+      paddingHorizontal: spacing.sm,
+    },
+    wheelWrap: {
+      height: 120,
+      borderRadius: radii.md,
+      backgroundColor: colors.background,
+      borderWidth: 1,
+      borderColor: colors.border,
+      overflow: "hidden",
+    },
+    wheelItem: { alignItems: "center", justifyContent: "center" },
+    wheelTxt: { color: colors.text, fontSize: 16, fontWeight: "700" },
+    wheelOverlay: {
+      position: "absolute",
+      left: 0,
+      right: 0,
+      height: 40,
+      borderTopWidth: 1,
+      borderBottomWidth: 1,
+      borderColor: colors.border,
+    },
+    sheetWrap: {
+      position: "absolute",
+      left: 0,
+      right: 0,
+      top: 0,
+      bottom: 0,
+      backgroundColor: "rgba(0,0,0,0.7)",
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    sheet: {
+      width: "90%",
+      backgroundColor: colors.surface,
+      borderRadius: radii.lg,
+      borderWidth: 1,
+      borderColor: colors.border,
+      padding: spacing.lg,
+      ...shadows.lg,
+    },
+    sheetTitle: {
+      color: colors.text,
+      ...typography.subtitle,
+      marginBottom: spacing.md,
+    },
+    sheetClose: {
+      textAlign: "center",
+      color: colors.textDim,
+      marginTop: spacing.md,
+      fontWeight: "600",
+    },
+    centerError: {
+      position: "absolute",
+      left: 20,
+      right: 20,
+      top: "45%",
+      backgroundColor: colors.danger,
+      paddingVertical: spacing.md,
+      borderRadius: radii.md,
+      alignItems: "center",
+      ...shadows.lg,
+    },
+    centerErrorTxt: { color: "#fff", fontWeight: "800" },
+    clock: {
+      alignSelf: "center",
+      position: "relative",
+      backgroundColor: colors.background,
+      borderRadius: 999,
+      borderWidth: 1,
+      borderColor: colors.border,
+      marginVertical: spacing.md,
+    },
+    clockDot: {
+      position: "absolute",
+      width: 44,
+      height: 44,
+      marginLeft: -22,
+      marginTop: -22,
+      borderRadius: 22,
+      borderWidth: 1,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    clockTxt: { fontSize: 14, fontWeight: "700" },
+    taskRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      marginTop: spacing.sm,
+      paddingVertical: spacing.xs,
+    },
+  });

@@ -1,18 +1,31 @@
-import React, { useMemo, useRef, useState } from 'react';
-import { View, Text, StyleSheet, Pressable, ScrollView, TextInput } from 'react-native';
-import HeaderBar from '../components/HeaderBar';
-import StyledCard from '../components/StyledCard';
-import StyledButton from '../components/StyledButton';
-import StyledProgressBar from '../components/StyledProgressBar';
-import { useApp } from '../store/AppContext';
-import { getThemeColors } from '../theme/tokens';
+import React, { useMemo, useRef, useState } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Pressable,
+  ScrollView,
+  TextInput,
+} from "react-native";
+import HeaderBar from "../components/HeaderBar";
+import StyledCard from "../components/StyledCard";
+import StyledButton from "../components/StyledButton";
+import StyledProgressBar from "../components/StyledProgressBar";
+import { useApp } from "../store/AppContext";
+import {
+  getThemeColors,
+  typography,
+  spacing,
+  radii,
+  shadows,
+} from "../theme/tokens";
 
 function msToHMS(ms) {
   const totalSec = Math.floor(ms / 1000);
   const h = Math.floor(totalSec / 3600);
   const m = Math.floor((totalSec % 3600) / 60);
   const s = totalSec % 60;
-  const pad = (n) => String(n).padStart(2, '0');
+  const pad = (n) => String(n).padStart(2, "0");
   return `${h}:${pad(m)}:${pad(s)}`;
 }
 
@@ -29,19 +42,20 @@ export default function HomeLightScreen({ openGameMode, openStats }) {
     toggleTask,
     addTask,
     removeTask,
+    themeMode,
   } = useApp();
 
   // Get theme colors based on whether game is running
-  const themeColors = getThemeColors(running);
+  const themeColors = getThemeColors(running, themeMode);
 
-  const [taskInput, setTaskInput] = useState('');
+  const [taskInput, setTaskInput] = useState("");
   const [showTaskInput, setShowTaskInput] = useState(false);
   const inputRef = useRef(null);
   function addTaskFromInput() {
     const t = taskInput.trim();
     if (!t) return;
     addTask(t);
-    setTaskInput('');
+    setTaskInput("");
     setShowTaskInput(false);
   }
 
@@ -52,88 +66,142 @@ export default function HomeLightScreen({ openGameMode, openStats }) {
   const todaysCompletedCount = useMemo(() => {
     if (!playLogs || playLogs.length === 0) return 0;
     const today = new Date();
-    const y = today.getFullYear(), m = today.getMonth(), d = today.getDate();
-    return playLogs.filter(l => !!l.end && (new Date(l.end)).getFullYear() === y && (new Date(l.end)).getMonth() === m && (new Date(l.end)).getDate() === d).length;
+    const y = today.getFullYear(),
+      m = today.getMonth(),
+      d = today.getDate();
+    return playLogs.filter(
+      (l) =>
+        !!l.end &&
+        new Date(l.end).getFullYear() === y &&
+        new Date(l.end).getMonth() === m &&
+        new Date(l.end).getDate() === d,
+    ).length;
   }, [playLogs]);
 
   // Create dynamic styles based on theme
-  const dynamicStyles = useMemo(() => createStyles(themeColors, running), [themeColors, running]);
+  const dynamicStyles = useMemo(
+    () => createStyles(themeColors, running),
+    [themeColors, running],
+  );
 
   return (
     <View style={dynamicStyles.container}>
       {/* Shared Header */}
       <HeaderBar title="Focus Tracker" />
       <ScrollView contentContainerStyle={dynamicStyles.containerContent}>
-
         {/* Progress Summary Card */}
         <Pressable onPress={() => openStats && openStats()}>
-          <StyledCard colors={themeColors} variant={running ? 'game' : 'default'}>
+          <StyledCard
+            colors={themeColors}
+            variant={running ? "game" : "default"}
+          >
             <View style={dynamicStyles.progressHeader}>
-              <Text style={dynamicStyles.cardTitle}>Stats</Text>
+              <View style={dynamicStyles.eyebrowRow}>
+                <View style={dynamicStyles.eyebrowDot} />
+                <Text style={dynamicStyles.cardTitle}>Stats</Text>
+              </View>
               <Text style={dynamicStyles.progressTime}>
-                {Math.floor(todayMs / 3600000)}h {Math.floor((todayMs % 3600000) / 60000)}m
+                {Math.floor(todayMs / 3600000)}h{" "}
+                {Math.floor((todayMs % 3600000) / 60000)}m
               </Text>
-              <Text style={dynamicStyles.progressLabel}>Today</Text>
+              <Text style={dynamicStyles.progressLabel}>Today’s focus</Text>
             </View>
-            <StyledProgressBar 
-              progress={Math.min(1, todayMs / Math.max(1, remainingMs + todayMs))} 
+            <StyledProgressBar
+              progress={Math.min(
+                1,
+                todayMs / Math.max(1, remainingMs + todayMs),
+              )}
               colors={themeColors}
-              variant={running ? 'game' : 'default'}
+              variant={running ? "game" : "default"}
             />
-            <Text style={dynamicStyles.progressTarget}>Target: {Math.floor(remainingMs / 3600000) + Math.floor(todayMs / 3600000)}h</Text>
+            <Text style={dynamicStyles.progressTarget}>
+              Target:{" "}
+              {Math.floor(remainingMs / 3600000) +
+                Math.floor(todayMs / 3600000)}
+              h
+            </Text>
           </StyledCard>
         </Pressable>
 
         {/* Game Mode Card */}
-        <StyledCard colors={themeColors} variant={running ? 'game' : 'default'}>
+        <StyledCard colors={themeColors} variant={running ? "game" : "default"}>
           <Text style={dynamicStyles.cardTitle}>Game Mode</Text>
           <Text style={{ color: themeColors.text, marginBottom: 12 }}>
-            Remaining today: {Math.floor(remainingMs / 3600000)}h {Math.floor((remainingMs % 3600000) / 60000)}m
+            Remaining today: {Math.floor(remainingMs / 3600000)}h{" "}
+            {Math.floor((remainingMs % 3600000) / 60000)}m
           </Text>
 
           {running ? (
-            <StyledButton 
-              title="Mark as Done" 
-              onPress={stopSession} 
-              colors={themeColors} 
+            <StyledButton
+              title="Mark as Done"
+              onPress={stopSession}
+              colors={themeColors}
               variant="primary"
               rectangular
             />
           ) : remainingMs > 0 ? (
-            <StyledButton 
-              title="Start" 
-              onPress={startSession} 
-              colors={themeColors} 
+            <StyledButton
+              title="Start"
+              onPress={startSession}
+              colors={themeColors}
               variant="primary"
               rectangular
             />
           ) : (
             <>
-              <Text style={{ color: themeColors.textDim, marginBottom: 8 }}>Budget used. You can still override from Game Mode.</Text>
+              <Text style={{ color: themeColors.textDim, marginBottom: 8 }}>
+                Budget used. You can still override from Game Mode.
+              </Text>
               <Pressable onPress={() => openGameMode && openGameMode()}>
-                <Text style={{ color: themeColors.textDim, textDecorationLine: 'underline' }}>Open full Game Mode</Text>
+                <Text
+                  style={{
+                    color: themeColors.textDim,
+                    textDecorationLine: "underline",
+                  }}
+                >
+                  Open full Game Mode
+                </Text>
               </Pressable>
             </>
           )}
         </StyledCard>
 
         {/* Today's Schedule */}
-        <StyledCard colors={themeColors} variant={running ? 'game' : 'default'}>
+        <StyledCard colors={themeColors} variant={running ? "game" : "default"}>
           <View style={dynamicStyles.sectionHeaderRow}>
             <Text style={dynamicStyles.cardTitle}>Today's Schedule</Text>
-            <Pressable onPress={() => { setShowTaskInput(true); setTimeout(() => inputRef.current?.focus(), 0); }}>
+            <Pressable
+              onPress={() => {
+                setShowTaskInput(true);
+                setTimeout(() => inputRef.current?.focus(), 0);
+              }}
+            >
               <Text style={dynamicStyles.addHeaderLink}>Add</Text>
             </Pressable>
           </View>
-          {tasks.length === 0 && <Text style={dynamicStyles.muted}>No tasks today.</Text>}
+          {tasks.length === 0 && (
+            <Text style={dynamicStyles.muted}>No tasks today.</Text>
+          )}
           {tasks.map((t) => (
             <View key={t.id} style={dynamicStyles.taskRow}>
               <Pressable
                 onPress={() => toggleTask(t.id)}
-                style={{ flexDirection: 'row', flex: 1, alignItems: 'center' }}
+                style={{ flexDirection: "row", flex: 1, alignItems: "center" }}
               >
-                <View style={[dynamicStyles.checkbox, t.completed && dynamicStyles.checkboxOn]} />
-                <Text style={[dynamicStyles.taskText, t.completed && dynamicStyles.taskTextDone]}>{t.text}</Text>
+                <View
+                  style={[
+                    dynamicStyles.checkbox,
+                    t.completed && dynamicStyles.checkboxOn,
+                  ]}
+                />
+                <Text
+                  style={[
+                    dynamicStyles.taskText,
+                    t.completed && dynamicStyles.taskTextDone,
+                  ]}
+                >
+                  {t.text}
+                </Text>
               </Pressable>
               <Pressable onPress={() => removeTask(t.id)}>
                 <Text style={dynamicStyles.taskRemove}>x</Text>
@@ -150,7 +218,9 @@ export default function HomeLightScreen({ openGameMode, openStats }) {
                 placeholder="Add a new task"
                 placeholderTextColor={themeColors.textDim}
                 onSubmitEditing={addTaskFromInput}
-                onBlur={() => { if (!taskInput.trim()) setShowTaskInput(false); }}
+                onBlur={() => {
+                  if (!taskInput.trim()) setShowTaskInput(false);
+                }}
               />
             </View>
           )}
@@ -160,109 +230,207 @@ export default function HomeLightScreen({ openGameMode, openStats }) {
   );
 }
 
-const createStyles = (colors, running) => StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
-  containerContent: { padding: 20, paddingBottom: 28 },
+const createStyles = (colors, running) =>
+  StyleSheet.create({
+    container: { flex: 1, backgroundColor: "transparent" },
+    containerContent: { padding: spacing.lg, paddingBottom: spacing.xl },
 
-  card: {
-    backgroundColor: colors.surface,
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 4,
-  },
-  cardTitle: { fontSize: 16, fontWeight: '700', color: colors.text, marginBottom: 10, textAlign: 'left' },
+    card: {
+      backgroundColor: colors.surface,
+      borderRadius: radii.lg,
+      padding: spacing.lg,
+      marginBottom: spacing.lg,
+      borderWidth: 1,
+      borderColor: colors.border,
+      ...(!running ? shadows.card : shadows.cyber),
+    },
+    cardTitle: {
+      ...typography.label,
+      color: colors.textDim,
+      marginBottom: spacing.sm,
+      textAlign: "left",
+    },
 
-  timerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  timer: { fontSize: 32, fontWeight: '800', color: colors.text },
+    timerRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+    },
+    timer: {
+      ...typography.title,
+      fontSize: 32, // Override for specific timer size
+      color: colors.text,
+    },
 
-  btn: {
-    borderRadius: 22,
-    paddingVertical: 10,
-    paddingHorizontal: 18,
-    backgroundColor: colors.primary,
-    shadowColor: 'transparent',
-    shadowOpacity: 0,
-    shadowRadius: 0,
-    shadowOffset: { width: 0, height: 0 },
-    elevation: 0,
-  },
-  btnText: { color: colors.background, fontWeight: '700' },
+    btn: {
+      borderRadius: radii.pill,
+      paddingVertical: 10,
+      paddingHorizontal: 20,
+      backgroundColor: colors.primary,
+    },
+    btnText: {
+      ...typography.body,
+      color: colors.surface, // Background of primary is surface (white in light)
+      fontWeight: "700",
+    },
 
-  // Rectangular buttons for Game Mode card (match full Game Mode)
-  cardBtn: {
-    backgroundColor: colors.primary,
-    paddingVertical: 12,
-    paddingHorizontal: 18,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginTop: 6,
-    shadowColor: 'transparent',
-    shadowOpacity: 0,
-    shadowRadius: 0,
-    shadowOffset: { width: 0, height: 0 },
-    elevation: 0,
-  },
-  cardBtnPressed: { backgroundColor: colors.primaryDim },
-  cardBtnText: { color: colors.background, fontWeight: '800' },
+    // Rectangular buttons for Game Mode card
+    cardBtn: {
+      backgroundColor: colors.primary,
+      paddingVertical: spacing.md,
+      paddingHorizontal: spacing.lg,
+      borderRadius: radii.md,
+      alignItems: "center",
+      marginTop: spacing.sm,
+    },
+    cardBtnPressed: { backgroundColor: colors.primaryDim },
+    cardBtnText: {
+      ...typography.body,
+      color: colors.surface,
+      fontWeight: "800",
+    },
 
-  // Game Mode CTA
-  gameModeBtn: {
-    backgroundColor: colors.primary,
-    paddingVertical: 12,
-    paddingHorizontal: 18,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginTop: 6,
-    shadowColor: 'transparent',
-    shadowOpacity: 0,
-    shadowRadius: 0,
-    shadowOffset: { width: 0, height: 0 },
-    elevation: 0,
-  },
-  gameModeBtnText: { color: colors.background, fontWeight: '800' },
+    // Game Mode CTA
+    gameModeBtn: {
+      backgroundColor: colors.primary,
+      paddingVertical: spacing.md,
+      paddingHorizontal: spacing.lg,
+      borderRadius: radii.md,
+      alignItems: "center",
+      marginTop: spacing.sm,
+    },
+    gameModeBtnText: {
+      ...typography.body,
+      color: colors.surface,
+      fontWeight: "800",
+    },
 
-  progressCard: {
-    backgroundColor: colors.surface,
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 4,
-  },
-  progressHeader: { alignItems: 'center', marginBottom: 16 },
-  progressTime: { fontSize: 36, fontWeight: '800', color: colors.text, marginBottom: 4 },
-  progressLabel: { fontSize: 14, color: colors.textDim },
-  progressBarContainer: { width: '100%', height: 8, backgroundColor: colors.border, borderRadius: 4, marginBottom: 8 },
-  progressTarget: { fontSize: 12, color: colors.textDim },
+    progressCard: {
+      backgroundColor: colors.surface,
+      borderRadius: radii.lg,
+      padding: spacing.xl,
+      marginBottom: spacing.lg,
+      borderWidth: 1,
+      borderColor: colors.border,
+      ...(!running ? shadows.card : shadows.cyber),
+    },
+    progressHeader: { alignItems: "center", marginBottom: spacing.lg },
+    eyebrowRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: spacing.sm,
+    },
+    eyebrowDot: {
+      width: 8,
+      height: 8,
+      borderRadius: 4,
+      backgroundColor: colors.primary,
+      marginRight: spacing.sm,
+    },
+    progressTime: {
+      ...typography.title,
+      fontSize: 36,
+      color: colors.text,
+      marginBottom: 4,
+    },
+    progressLabel: {
+      ...typography.caption,
+      color: colors.textDim,
+    },
+    progressBarContainer: {
+      width: "100%",
+      height: 8,
+      backgroundColor: colors.border,
+      borderRadius: 4,
+      marginBottom: spacing.sm,
+    },
+    progressTarget: {
+      ...typography.caption,
+      color: colors.textDim,
+    },
 
-  muted: { color: colors.textDim, marginTop: 6, textAlign: 'center' },
+    muted: {
+      ...typography.caption,
+      color: colors.textDim,
+      marginTop: spacing.sm,
+      textAlign: "center",
+    },
 
-  barRow: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', height: 110, marginTop: 6 },
-  barWrap: { flex: 1, alignItems: 'center' },
-  bar: { width: 18, borderRadius: 9, backgroundColor: colors.primary },
+    barRow: {
+      flexDirection: "row",
+      alignItems: "flex-end",
+      justifyContent: "space-between",
+      height: 110,
+      marginTop: spacing.sm,
+    },
+    barWrap: { flex: 1, alignItems: "center" },
+    bar: { width: 18, borderRadius: 9, backgroundColor: colors.primary },
 
-  taskRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8 },
-  checkbox: { width: 18, height: 18, borderRadius: 4, borderWidth: 2, borderColor: colors.secondary, marginRight: 10 },
-  checkboxOn: { backgroundColor: colors.primary },
-  taskText: { color: colors.text },
-  taskTextDone: { color: colors.textDim, textDecorationLine: 'line-through' },
-  taskRemove: { color: colors.secondary, fontWeight: '800', paddingHorizontal: 8, paddingVertical: 4 },
+    taskRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingVertical: spacing.sm,
+    },
+    checkbox: {
+      width: 20,
+      height: 20,
+      borderRadius: 6,
+      borderWidth: 2,
+      borderColor: colors.border,
+      marginRight: spacing.md,
+    },
+    checkboxOn: {
+      backgroundColor: colors.primary,
+      borderColor: colors.primary,
+    },
+    taskText: {
+      ...typography.body,
+      color: colors.text,
+    },
+    taskTextDone: {
+      ...typography.body,
+      color: colors.textDim,
+      textDecorationLine: "line-through",
+    },
+    taskRemove: {
+      ...typography.caption,
+      color: colors.danger,
+      fontWeight: "800",
+      paddingHorizontal: spacing.sm,
+      paddingVertical: 4,
+    },
 
-  // Header Add button and input styles
-  sectionHeaderRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 },
-  addHeaderLink: { color: colors.secondary, fontWeight: '800' },
-  addHeaderButton: { backgroundColor: colors.primary, paddingVertical: 8, paddingHorizontal: 14, borderRadius: 8 },
-  addHeaderButtonPressed: { backgroundColor: colors.primaryDim },
-  addHeaderButtonText: { color: colors.background, fontWeight: '800' },
-  addTaskForm: { flexDirection: 'row', alignItems: 'center', marginTop: 12 },
-  addTaskInput: { flex: 1, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, color: colors.text, borderRadius: 12, paddingHorizontal: 15, paddingVertical: 12, fontSize: 15 },
-});
-
+    sectionHeaderRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      marginBottom: spacing.sm,
+    },
+    addHeaderButton: {
+      backgroundColor: colors.primary,
+      paddingVertical: 8,
+      paddingHorizontal: 14,
+      borderRadius: radii.md,
+    },
+    addHeaderButtonText: {
+      ...typography.caption,
+      color: colors.surface,
+      fontWeight: "800",
+    },
+    addTaskForm: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginTop: spacing.md,
+    },
+    addTaskInput: {
+      flex: 1,
+      backgroundColor: colors.background,
+      borderWidth: 1,
+      borderColor: colors.border,
+      color: colors.text,
+      borderRadius: radii.md,
+      paddingHorizontal: spacing.md,
+      paddingVertical: 12,
+      ...typography.body,
+    },
+  });

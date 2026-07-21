@@ -1,9 +1,24 @@
-import React from 'react';
-import { View, StyleSheet } from 'react-native';
-import { Canvas, RoundedRect, LinearGradient, vec, Shadow, Blur, Group } from '@shopify/react-native-skia';
+import React from "react";
+import { View, StyleSheet } from "react-native";
+import {
+  Canvas,
+  RoundedRect,
+  LinearGradient,
+  vec,
+  Shadow,
+  Blur,
+  Group,
+} from "@shopify/react-native-skia";
 
-export default function SkiaCard({ children, colors, variant = 'default', style, width = 350, height = 200 }) {
-  const isGameMode = variant === 'game';
+export default function SkiaCard({
+  children,
+  colors,
+  variant = "default",
+  style,
+  width = 350,
+  height = 200,
+}) {
+  const isGameMode = variant === "game";
 
   return (
     <View style={[styles.container, style, { width, height }]}>
@@ -40,22 +55,19 @@ export default function SkiaCard({ children, colors, variant = 'default', style,
         )}
 
         {/* Card background */}
-        <RoundedRect
-          x={2}
-          y={2}
-          width={width - 4}
-          height={height - 4}
-          r={15}
-        >
+        <RoundedRect x={2} y={2} width={width - 4} height={height - 4} r={15}>
           <LinearGradient
             start={vec(0, 0)}
             end={vec(0, height)}
-            colors={isGameMode 
-              ? [colors.surface, colors.background] 
-              : ['#FFFFFF', '#F9F9F9']
+            colors={
+              isGameMode
+                ? [colors.surface, colors.background]
+                : ["#FFFFFF", "#F9F9F9"]
             }
           />
-          {!isGameMode && <Shadow dx={0} dy={4} blur={12} color="rgba(0,0,0,0.1)" />}
+          {!isGameMode && (
+            <Shadow dx={0} dy={4} blur={12} color="rgba(0,0,0,0.1)" />
+          )}
         </RoundedRect>
 
         {isGameMode && (
@@ -73,7 +85,7 @@ export default function SkiaCard({ children, colors, variant = 'default', style,
           </>
         )}
       </Canvas>
-      
+
       <View style={styles.content} pointerEvents="box-none">
         {children}
       </View>
@@ -86,7 +98,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   canvas: {
-    position: 'absolute',
+    position: "absolute",
   },
   content: {
     flex: 1,

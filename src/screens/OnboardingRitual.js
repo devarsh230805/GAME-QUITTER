@@ -1,18 +1,33 @@
-import React, { useState } from 'react';
-import { View, Text, Pressable, TextInput, Keyboard } from 'react-native';
-import { styles } from './OnboardingRitual.styles';
+import React, { useState, useMemo } from "react";
+import {
+  View,
+  Text,
+  Pressable,
+  TextInput,
+  Keyboard,
+  StyleSheet,
+} from "react-native";
+import { createStyles } from "./OnboardingRitual.styles";
+import { useApp } from "../store/AppContext";
+import { getThemeColors, spacing, radii, typography } from "../theme/tokens";
+import OnboardingProgress from "../components/OnboardingProgress";
+import StyledButton from "../components/StyledButton";
+import { Ionicons } from "@expo/vector-icons";
 
-const headline = 'Before playing any game, I will always open the Game Mode in this app.';
-const phrase = 'I commit';
+const headline =
+  "Before playing any game, I will always open the Game Mode in this app.";
+const phrase = "I commit";
 
-/**
- * OnboardingRitual
- * Typing-gate for phrase "I commit" with tolerant case-insensitive matching.
- * Styles moved to OnboardingRitual.styles.js (no visual changes).
- */
-export default function OnboardingRitual({ onCommitted }) {
-  const [progress, setProgress] = useState(0); // number of correct leading chars
-  const [input, setInput] = useState(''); // transient buffer to capture keystrokes
+export default function OnboardingRitual({ onCommitted, onSkip, onBack }) {
+  const { running, themeMode } = useApp();
+  const colors = useMemo(
+    () => getThemeColors(running, themeMode),
+    [running, themeMode],
+  );
+  const styles = useMemo(() => createStyles(colors), [colors]);
+
+  const [progress, setProgress] = useState(0);
+  const [input, setInput] = useState("");
   const [showMistype, setShowMistype] = useState(false);
   const inputRef = React.useRef(null);
 
@@ -21,35 +36,172 @@ export default function OnboardingRitual({ onCommitted }) {
   const focusRitualInput = React.useCallback(() => {
     const node = inputRef.current;
     if (!node) return;
-    try { Keyboard.dismiss(); } catch {}
-    try { node.focus?.(); } catch {}
+    try {
+      Keyboard.dismiss();
+    } catch {}
+    try {
+      node.focus?.();
+    } catch {}
     if (global?.requestAnimationFrame) {
-      requestAnimationFrame(() => { try { node.focus?.(); } catch {} });
+      requestAnimationFrame(() => {
+        try {
+          node.focus?.();
+        } catch {}
+      });
     }
-    setTimeout(() => { try { node.focus?.(); } catch {} }, 0);
+    setTimeout(() => {
+      try {
+        node.focus?.();
+      } catch {}
+    }, 0);
   }, []);
 
   function handleChange(text) {
-    if (!text) return setInput('');
-    const ch = text[text.length - 1];
-    if (progress < phrase.length && ch.toLowerCase() === phrase[progress].toLowerCase()) {
-      setProgress(progress + 1);
-    } else {
-      setShowMistype(true);
-      setTimeout(() => setShowMistype(false), 500);
+    // Calculate matching characters from start
+    let matchedLength = 0;
+    for (let i = 0; i < text.length; i += 1) {
+      if (
+        i < phrase.length &&
+        text[i].toLowerCase() === phrase[i].toLowerCase()
+      ) {
+        matchedLength += 1;
+      } else {
+        break;
+      }
     }
-    // clear buffer so user never needs to backspace
-    setInput('');
+
+    setProgress(matchedLength);
+
+    if (text.length > matchedLength) {
+      setShowMistype(true);
+      setInput(text.slice(0, matchedLength)); // Revert to only valid characters
+      setTimeout(() => setShowMistype(false), 800);
+    } else {
+      setShowMistype(false);
+      setInput(text);
+    }
   }
 
   return (
-    <View style={styles.container}>
-      <View style={{ alignItems: 'center' }}>
-        <Text style={styles.title}>Ritual Commitment</Text>
-        <Text style={styles.body}>{headline}</Text>
+    <View
+      style={[
+        styles.container,
+        { paddingTop: spacing.xxl, backgroundColor: "transparent" },
+      ]}
+    >
+      {/* App Header */}
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+          marginBottom: spacing.xs,
+        }}
+      >
+        <View style={{ flexDirection: "row", alignItems: "center" }}>
+          {!!onBack && (
+            <Pressable
+              onPress={onBack}
+              style={{ padding: 4, marginRight: spacing.sm }}
+            >
+              <Ionicons name="arrow-back" size={20} color={colors.text} />
+            </Pressable>
+          )}
+          <View
+            style={{
+              backgroundColor: colors.primary,
+              width: 28,
+              height: 28,
+              borderRadius: radii.sm,
+              alignItems: "center",
+              justifyContent: "center",
+              marginRight: spacing.sm,
+            }}
+          >
+            <Text
+              style={{
+                color: colors.surface,
+                fontSize: 10,
+                fontWeight: "bold",
+              }}
+            >
+              GQ
+            </Text>
+          </View>
+          <Text
+            style={{
+              ...typography.subtitle,
+              color: colors.text,
+              fontWeight: "700",
+            }}
+          >
+            GameQuitter
+          </Text>
+        </View>
+        <Pressable onPress={() => onSkip?.()}>
+          <Text style={{ ...typography.body, color: colors.textDim }}>
+            Skip
+          </Text>
+        </Pressable>
+      </View>
 
+      {/* Main Flow Bar */}
+      <OnboardingProgress currentStep={5} totalSteps={7} colors={colors} />
+
+      {/* Commitment Content Area - Vertically Centered */}
+      <View
+        style={{ flex: 1, justifyContent: "center", paddingBottom: spacing.xl }}
+      >
+        <View style={{ marginBottom: spacing.lg, alignItems: "center" }}>
+          <View
+            style={{
+              backgroundColor: colors.primary + "20",
+              paddingHorizontal: spacing.md,
+              paddingVertical: spacing.xs,
+              borderRadius: radii.full,
+              marginBottom: spacing.lg,
+            }}
+          >
+            <Text
+              style={{
+                ...typography.caption,
+                color: colors.primary,
+                fontWeight: "800",
+                letterSpacing: 1.2,
+              }}
+            >
+              STEP 5 OF 7 · COMMITMENT RITUAL
+            </Text>
+          </View>
+          <Text style={[styles.title, { textAlign: "center" }]}>
+            Your Commitment
+          </Text>
+          <Text
+            style={[
+              styles.body,
+              { textAlign: "center", paddingHorizontal: spacing.md },
+            ]}
+          >
+            {headline}
+          </Text>
+        </View>
+
+        {/* Typing Box */}
         <Pressable
-          style={[styles.typeBox, showMistype && styles.typeBoxError]}
+          style={[
+            styles.typeBox,
+            showMistype && styles.typeBoxError,
+            {
+              marginBottom: spacing.lg,
+              paddingVertical: spacing.xl,
+              backgroundColor: colors.surface,
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.08,
+              shadowRadius: 12,
+              elevation: 4,
+            },
+          ]}
           onPressIn={focusRitualInput}
           onPress={focusRitualInput}
           onPressOut={focusRitualInput}
@@ -57,10 +209,24 @@ export default function OnboardingRitual({ onCommitted }) {
           accessibilityRole="button"
           accessibilityLabel="Ritual input"
         >
-          <Text style={styles.typeLine}>
+          <Text
+            style={{
+              ...typography.caption,
+              color: colors.textDim,
+              marginBottom: spacing.sm,
+            }}
+          >
+            Tap and type:
+          </Text>
+          <Text style={[styles.typeLine, { fontSize: 22, letterSpacing: 1 }]}>
             <Text style={styles.matched}>{phrase.slice(0, progress)}</Text>
             <Text style={styles.remaining}>{phrase.slice(progress)}</Text>
           </Text>
+          {showMistype && (
+            <Text style={[styles.hint, { marginTop: spacing.md }]}>
+              Type exactly as shown above.
+            </Text>
+          )}
         </Pressable>
 
         <TextInput
@@ -72,16 +238,17 @@ export default function OnboardingRitual({ onCommitted }) {
           autoCorrect={false}
           blurOnSubmit={false}
           showSoftInputOnFocus
-          style={[styles.hiddenInput, { width: 1, height: 1, opacity: 0.01 }]}
+          style={[styles.hiddenInput]}
         />
 
-        {showMistype && (
-          <Text style={styles.hint}>Type exactly as shown above.</Text>
-        )}
-
-        <Pressable disabled={!fullyMatched} style={[styles.cta, !fullyMatched && styles.ctaDisabled]} onPress={onCommitted}>
-          <Text style={styles.ctaText}>{fullyMatched ? 'Continue' : 'Type "I commit" to continue'}</Text>
-        </Pressable>
+        <StyledButton
+          title={fullyMatched ? "✓  Continue" : 'Type "I commit" to continue'}
+          onPress={onCommitted}
+          colors={colors}
+          disabled={!fullyMatched}
+          rectangular
+          style={{ marginTop: spacing.md }}
+        />
       </View>
     </View>
   );

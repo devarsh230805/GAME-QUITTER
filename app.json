@@ -1,9 +1,9 @@
 {
   "expo": {
-    "name": "game-add-app",
-    "slug": "game-add-app",
+    "name": "GAME QUITTER",
+    "slug": "game-quitter",
     "owner": "mann",
-    "scheme": "gameaddapp",
+    "scheme": "gamequitter",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -16,10 +16,10 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.jay1026v.gameaddapp"
+      "bundleIdentifier": "com.jay1026v.gamequitter"
     },
     "android": {
-      "package": "com.mann.gameaddapp",
+      "package": "com.mann.gamequitter",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
@@ -31,7 +31,9 @@
     },
     "plugins": [
       "expo-web-browser",
-      "expo-secure-store"
+      "expo-secure-store",
+      "@react-native-community/datetimepicker",
+      "expo-status-bar"
     ],
     "extra": {
       "eas": {

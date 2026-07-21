@@ -1,72 +1,115 @@
-import React from 'react';
-import { Pressable, Text, StyleSheet } from 'react-native';
+import React from "react";
+import { Pressable, Text, StyleSheet, Platform } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 
-export default function StyledButton({ 
-  onPress, 
-  title, 
-  colors, 
-  variant = 'primary',
+export default function StyledButton({
+  onPress,
+  title,
+  colors,
+  variant = "primary",
   disabled = false,
   rectangular = false,
-  style 
+  style,
 }) {
-  const getColors = () => {
-    if (disabled) return { bg: '#999999', text: '#CCCCCC' };
-    
+  const getGradientColors = () => {
+    if (disabled) return ["#94A3B8", "#64748B"]; // Greyed out
+
+    const isGameMode = colors.background === "#040508";
+    const isDark = colors.background === "#0B0F19";
+
     switch (variant) {
-      case 'primary':
-        return { bg: colors.primary, text: colors.background };
-      case 'secondary':
-        return { bg: colors.secondary, text: colors.background };
-      case 'danger':
-        return { bg: colors.danger, text: '#FFFFFF' };
+      case "primary":
+        if (isGameMode) return ["#FDA524", "#FDA524"]; // Matt Orange in Game Mode!
+        if (isDark) return ["#FFFFFF", "#E2E8F0"]; // White/Silver button in Dark Mode
+        return ["#1E293B", "#0F172A"]; // Slate-Black button in Light Mode
+      case "secondary":
+        if (isGameMode) return ["#27272A", "#18181B"]; // Matte Zinc Grey in Game Mode
+        if (isDark) return ["#334155", "#1E293B"]; // Slate
+        return ["#E2E8F0", "#CBD5E1"]; // Light Grey
+      case "danger":
+        if (isDark) return ["#334155", "#1E293B"]; // Slate grey in Dark Mode
+        return ["#64748B", "#475569"]; // Slate Gray in Light Mode (No Red!)
       default:
-        return { bg: colors.primary, text: colors.background };
+        return ["#1E293B", "#0F172A"];
     }
   };
 
-  const btnColors = getColors();
+  const getTextColor = () => {
+    if (disabled) return "#E2E8F0";
+    const isGameMode = colors.background === "#040508";
+    const isDark = colors.background === "#0B0F19";
+
+    if (variant === "primary") {
+      if (isGameMode) return "#FFFFFF"; // White text on Red
+      if (isDark) return "#0B0F19"; // Dark text on White button
+      return "#FFFFFF"; // White text on Black button
+    }
+    if (variant === "secondary") {
+      if (isGameMode) return "#040508"; // Dark text on cyan secondary
+      if (isDark) return "#FFFFFF";
+      return "#0F172A";
+    }
+    return "#FFFFFF"; // Danger, etc.
+  };
+
+  const gradientColors = getGradientColors();
+  const textColor = getTextColor();
 
   return (
-    <Pressable 
-      onPress={disabled ? undefined : onPress} 
+    <Pressable
+      onPress={disabled ? undefined : onPress}
       style={({ pressed }) => [
-        styles.button,
-        rectangular && styles.rectangular,
-        { backgroundColor: pressed ? colors.primaryDim : btnColors.bg },
+        styles.pressable,
+        { transform: [{ scale: pressed ? 0.97 : 1 }] },
         disabled && styles.disabled,
-        style
+        style,
       ]}
       disabled={disabled}
     >
-      <Text style={[styles.text, { color: btnColors.text }]}>
-        {title}
-      </Text>
+      {({ pressed }) => (
+        <LinearGradient
+          colors={
+            pressed ? gradientColors.map((c) => c + "CC") : gradientColors
+          }
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={[
+            styles.button,
+            rectangular ? styles.rectangular : styles.pill,
+          ]}
+        >
+          <Text style={[styles.text, { color: textColor }]}>{title}</Text>
+        </LinearGradient>
+      )}
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
+  pressable: {
+    ...Platform.select({
+      web: { cursor: "pointer" },
+      default: {},
+    }),
+  },
   button: {
     paddingVertical: 14,
     paddingHorizontal: 24,
-    borderRadius: 999, // Pill shape
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  pill: {
+    borderRadius: 999,
   },
   rectangular: {
-    borderRadius: 12, // Rounded rectangle
+    borderRadius: 12,
   },
   disabled: {
     opacity: 0.5,
   },
   text: {
     fontSize: 16,
-    fontWeight: '800',
+    fontWeight: "800",
+    letterSpacing: 0.5,
   },
 });

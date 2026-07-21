@@ -1,34 +1,60 @@
-import React, { useMemo } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { useApp } from '../store/AppContext';
-import { getThemeColors } from '../theme/tokens';
+import React, { useMemo } from "react";
+import { View, Text, StyleSheet, Platform } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
+import { useApp } from "../store/AppContext";
+import { getThemeColors, typography, spacing } from "../theme/tokens";
 
 export default function HeaderBar({ title }) {
-  const { running } = useApp();
-  const colors = getThemeColors(running);
-  const styles = useMemo(() => createStyles(colors, running), [colors, running]);
+  const { running, themeMode } = useApp();
+  const colors = getThemeColors(running, themeMode);
+  const styles = useMemo(
+    () => createStyles(colors, running),
+    [colors, running],
+  );
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>{title}</Text>
-    </View>
+    <LinearGradient
+      colors={
+        running
+          ? ["rgba(99, 102, 241, 0.18)", "rgba(248, 250, 252, 0.04)"]
+          : ["#FFFFFF", "#F8FAFC"]
+      }
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={styles.container}
+    >
+      <View style={styles.innerRow}>
+        <View style={[styles.dot, { backgroundColor: colors.primary }]} />
+        <Text style={styles.title}>{title}</Text>
+      </View>
+    </LinearGradient>
   );
 }
 
-const createStyles = (colors, running) => StyleSheet.create({
-  container: {
-    height: 56,
-    backgroundColor: 'transparent',
-    justifyContent: 'center',
-    alignItems: 'flex-start',
-    paddingLeft: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-    shadowColor: 'transparent',
-    shadowOpacity: 0,
-    shadowRadius: 0,
-    shadowOffset: { width: 0, height: 0 },
-    elevation: 0,
-  },
-  title: { color: colors.text, fontSize: 18, fontWeight: '700' },
-});
+const createStyles = (colors, running) =>
+  StyleSheet.create({
+    container: {
+      height: Platform.OS === "ios" ? 70 : 62,
+      justifyContent: "center",
+      alignItems: "center",
+      paddingHorizontal: spacing.lg,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    innerRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    dot: {
+      width: 10,
+      height: 10,
+      borderRadius: 5,
+      marginRight: spacing.sm,
+    },
+    title: {
+      ...typography.subtitle,
+      color: colors.text,
+      textAlign: "center",
+    },
+  });
