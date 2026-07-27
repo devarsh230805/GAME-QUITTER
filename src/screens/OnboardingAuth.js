@@ -60,19 +60,27 @@ export default function OnboardingAuth({ onDone, onBack }) {
         style={{
           flexDirection: "row",
           alignItems: "center",
-          justifyContent: "space-between",
+          width: "100%",
+          height: 32,
+          position: "relative",
           marginBottom: spacing.xs,
         }}
       >
-        <View style={{ flexDirection: "row", alignItems: "center" }}>
-          {!!onBack && (
-            <Pressable
-              onPress={onBack}
-              style={{ padding: 4, marginRight: spacing.sm }}
-            >
-              <Ionicons name="arrow-back" size={20} color={colors.text} />
-            </Pressable>
-          )}
+        {!!onBack && (
+          <Pressable
+            onPress={onBack}
+            style={{
+              position: "absolute",
+              left: 0,
+              padding: 4,
+              zIndex: 10,
+            }}
+          >
+            <Ionicons name="arrow-back" size={20} color={colors.text} />
+          </Pressable>
+        )}
+
+        <View style={{ flexDirection: "row", alignItems: "center", marginLeft: 36 }}>
           <View
             style={{
               backgroundColor: colors.primary,

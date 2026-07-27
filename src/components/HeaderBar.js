@@ -24,7 +24,6 @@ export default function HeaderBar({ title }) {
       style={styles.container}
     >
       <View style={styles.innerRow}>
-        <View style={[styles.dot, { backgroundColor: colors.primary }]} />
         <Text style={styles.title}>{title}</Text>
       </View>
     </LinearGradient>

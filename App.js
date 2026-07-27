@@ -50,6 +50,9 @@ function AppInner() {
       // If user exists, go to main flow only if onboarding is fully complete
       if (firstOpenDone) {
         setFlow("main");
+      } else {
+        setFlow("onboarding");
+        setStep("goals");
       }
     } else {
       // No user session

@@ -17,6 +17,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { spacing, typography, radii, shadows } from "../theme/tokens";
 import StyledButton from "../components/StyledButton";
 import { Ionicons } from "@expo/vector-icons";
+import OnboardingProgress from "../components/OnboardingProgress";
 
 export default function DailyGoalsSetup({ onDone, themeColors, onBack }) {
   const styles = useMemo(() => createStyles(themeColors), [themeColors]);
@@ -157,72 +158,65 @@ export default function DailyGoalsSetup({ onDone, themeColors, onBack }) {
         style={{
           flexDirection: "row",
           alignItems: "center",
-          marginBottom: spacing.sm,
+          width: "100%",
+          height: 32,
+          position: "relative",
+          marginBottom: spacing.xs,
           paddingHorizontal: spacing.lg,
-          paddingTop: spacing.md,
+          paddingTop: spacing.xs,
         }}
       >
         {!!onBack && (
           <Pressable
             onPress={onBack}
-            style={{ padding: 4, marginRight: spacing.sm }}
+            style={{
+              position: "absolute",
+              left: spacing.lg,
+              padding: 4,
+              zIndex: 10,
+            }}
           >
             <Ionicons name="arrow-back" size={20} color={themeColors.text} />
           </Pressable>
         )}
-        <View
-          style={{
-            backgroundColor: themeColors.primary,
-            width: 28,
-            height: 28,
-            borderRadius: radii.sm,
-            alignItems: "center",
-            justifyContent: "center",
-            marginRight: spacing.sm,
-          }}
-        >
-          <Text
+
+        <View style={{ flexDirection: "row", alignItems: "center", marginLeft: 36 }}>
+          <View
             style={{
-              color: themeColors.surface,
-              fontSize: 10,
-              fontWeight: "bold",
+              backgroundColor: themeColors.primary,
+              width: 28,
+              height: 28,
+              borderRadius: radii.sm,
+              alignItems: "center",
+              justifyContent: "center",
+              marginRight: spacing.sm,
             }}
           >
-            GQ
+            <Text
+              style={{
+                color: themeColors.surface,
+                fontSize: 10,
+                fontWeight: "bold",
+              }}
+            >
+              GQ
+            </Text>
+          </View>
+          <Text
+            style={{
+              ...typography.subtitle,
+              color: themeColors.text,
+              fontWeight: "700",
+            }}
+          >
+            GameQuitter
           </Text>
         </View>
-        <Text
-          style={{
-            ...typography.subtitle,
-            color: themeColors.text,
-            fontWeight: "700",
-          }}
-        >
-          GameQuitter
-        </Text>
       </View>
 
-      {/* Step Completion Bar - All 7 steps filled (final step) */}
-      <View
-        style={{
-          flexDirection: "row",
-          paddingHorizontal: spacing.lg,
-          marginBottom: spacing.md,
-          gap: 4,
-        }}
-      >
-        {[1, 2, 3, 4, 5, 6, 7].map((step) => (
-          <View
-            key={step}
-            style={{
-              flex: 1,
-              height: 4,
-              borderRadius: 2,
-              backgroundColor: themeColors.primary,
-              opacity: step === 7 ? 1 : 0.4,
-            }}
-          />
-        ))}
+      {/* Main Flow Bar */}
+      <View style={{ paddingHorizontal: spacing.lg }}>
+        <OnboardingProgress currentStep={7} totalSteps={7} colors={themeColors} />
       </View>
 
       <ScrollView style={styles.mainContent}>

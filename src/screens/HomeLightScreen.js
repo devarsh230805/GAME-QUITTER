@@ -97,7 +97,6 @@ export default function HomeLightScreen({ openGameMode, openStats }) {
           >
             <View style={dynamicStyles.progressHeader}>
               <View style={dynamicStyles.eyebrowRow}>
-                <View style={dynamicStyles.eyebrowDot} />
                 <Text style={dynamicStyles.cardTitle}>Stats</Text>
               </View>
               <Text style={dynamicStyles.progressTime}>

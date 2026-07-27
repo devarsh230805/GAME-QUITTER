@@ -37,17 +37,31 @@ export default function StatsHistoryScreen() {
     [colors, running],
   );
 
+  const currentDayIdx = useMemo(() => {
+    const now = new Date();
+    const day = now.getDay();
+    return day === 0 ? 6 : day - 1; // 0 = Monday, 6 = Sunday
+  }, []);
+
   const [weekOffset, setWeekOffset] = useState(0);
-  const [selectedIdx, setSelectedIdx] = useState(6); // Default to today (last bar)
+  const [selectedIdx, setSelectedIdx] = useState(currentDayIdx); // Default to today's day of the week
 
   const days = useMemo(() => {
     const arr = [];
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
+    // Get distance to the Monday of the current week (0 = Sunday, 1 = Monday, etc.)
+    const currentDayOfWeek = today.getDay();
+    const distanceToMonday = currentDayOfWeek === 0 ? 6 : currentDayOfWeek - 1;
+
+    // Get the Monday of the target week (with weekOffset applied)
+    const mondayOfWeek = new Date(today);
+    mondayOfWeek.setDate(today.getDate() - distanceToMonday - weekOffset * 7);
+
     for (let i = 0; i < 7; i++) {
-      const d = new Date(today);
-      d.setDate(d.getDate() - (6 - i) - weekOffset * 7);
+      const d = new Date(mondayOfWeek);
+      d.setDate(mondayOfWeek.getDate() + i);
       const start = d.getTime();
       const end = start + 24 * 3600 * 1000;
       arr.push({

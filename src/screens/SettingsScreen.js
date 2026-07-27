@@ -49,9 +49,11 @@ export default function SettingsScreen({ openEditor }) {
             <Text style={[styles.profileName, { color: colors.text }]}>
               {profile?.display_name || "User"}
             </Text>
-            <Text style={[styles.profileEmail, { color: colors.textDim }]}>
-              {user?.email}
-            </Text>
+            {user?.email && user.email !== "guest@gamequitter.com" && (
+              <Text style={[styles.profileEmail, { color: colors.textDim }]}>
+                {user.email}
+              </Text>
+            )}
           </View>
           <Pressable
             style={[styles.editIconBtn, { backgroundColor: colors.background }]}

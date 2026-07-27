@@ -10,6 +10,7 @@ import {
   Platform,
   ActivityIndicator,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useApp } from "../store/AppContext";
 import { useAuth } from "../context/AuthContext";
 import Ionicons from "react-native-vector-icons/Ionicons";
@@ -25,15 +26,18 @@ import {
 export default function ProfileEditorScreen({ onClose }) {
   const {
     profileName,
+    setProfileName,
     profileEmail,
+    setProfileEmail,
     dailyTargetHours,
     setDailyTargetHours,
     running,
     themeMode,
   } = useApp();
-  const { updateProfile } = useAuth();
+  const { updateProfile, user } = useAuth();
 
   const colors = getThemeColors(running, themeMode);
+  const isGuest = !user || user.id === "guest-user";
 
   const [nameLocal, setNameLocal] = useState(profileName || "");
   const [emailLocal, setEmailLocal] = useState(profileEmail || "");
@@ -54,6 +58,18 @@ export default function ProfileEditorScreen({ onClose }) {
     setError("");
     setSuccess(false);
 
+    // If Guest, update locally and return success
+    if (isGuest) {
+      setProfileName(nameLocal);
+      setProfileEmail(emailLocal);
+      setDailyTargetHours(targetHours);
+      setSuccess(true);
+      setTimeout(() => setSuccess(false), 3000);
+      if (onClose) setTimeout(onClose, 500);
+      setLoading(false);
+      return;
+    }
+
     const { error: updateError } = await updateProfile({
       display_name: nameLocal,
       email: emailLocal,
@@ -71,7 +87,7 @@ export default function ProfileEditorScreen({ onClose }) {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <SafeAreaView edges={["top", "bottom"]} style={[styles.container, { backgroundColor: colors.background }]}>
       <HeaderBar title="Edit Profile" />
 
       {onClose && (
@@ -106,30 +122,34 @@ export default function ProfileEditorScreen({ onClose }) {
             placeholderTextColor={colors.textDim}
           />
 
-          <Text
-            style={[
-              styles.label,
-              { color: colors.textDim, marginTop: spacing.lg },
-            ]}
-          >
-            Email Address
-          </Text>
-          <TextInput
-            value={emailLocal}
-            onChangeText={setEmailLocal}
-            style={[
-              styles.input,
-              {
-                backgroundColor: colors.background,
-                borderColor: colors.border,
-                color: colors.text,
-              },
-            ]}
-            placeholder="you@example.com"
-            placeholderTextColor={colors.textDim}
-            keyboardType="email-address"
-            autoCapitalize="none"
-          />
+          {!isGuest && (
+            <>
+              <Text
+                style={[
+                  styles.label,
+                  { color: colors.textDim, marginTop: spacing.lg },
+                ]}
+              >
+                Email Address
+              </Text>
+              <TextInput
+                value={emailLocal}
+                onChangeText={setEmailLocal}
+                style={[
+                  styles.input,
+                  {
+                    backgroundColor: colors.background,
+                    borderColor: colors.border,
+                    color: colors.text,
+                  },
+                ]}
+                placeholder="you@example.com"
+                placeholderTextColor={colors.textDim}
+                keyboardType="email-address"
+                autoCapitalize="none"
+              />
+            </>
+          )}
 
           <Text
             style={[
@@ -191,7 +211,7 @@ export default function ProfileEditorScreen({ onClose }) {
           </Pressable>
         </View>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -200,9 +220,11 @@ const styles = StyleSheet.create({
   scrollContent: { padding: spacing.lg },
   closeButton: {
     position: "absolute",
-    top: Platform.OS === "ios" ? 44 : 10,
-    right: spacing.lg,
-    zIndex: 10,
+    top: Platform.OS === "ios" ? 22 : 12,
+    right: spacing.md,
+    zIndex: 999,
+    elevation: 10,
+    padding: 10, // Increased touch area
   },
   card: {
     padding: spacing.xl,

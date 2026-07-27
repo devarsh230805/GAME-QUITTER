@@ -74,17 +74,25 @@ export default function OnboardingQuizAdvanced({ onComplete, onSkip, onBack }) {
         style={{
           flexDirection: "row",
           alignItems: "center",
-          justifyContent: "space-between",
+          width: "100%",
+          height: 32,
+          position: "relative",
           marginBottom: spacing.xs,
         }}
       >
-        <View style={{ flexDirection: "row", alignItems: "center" }}>
-          <Pressable
-            onPress={handleBack}
-            style={{ padding: 4, marginRight: spacing.sm }}
-          >
-            <Ionicons name="arrow-back" size={20} color={colors.text} />
-          </Pressable>
+        <Pressable
+          onPress={handleBack}
+          style={{
+            position: "absolute",
+            left: 0,
+            padding: 4,
+            zIndex: 10,
+          }}
+        >
+          <Ionicons name="arrow-back" size={20} color={colors.text} />
+        </Pressable>
+
+        <View style={{ flexDirection: "row", alignItems: "center", marginLeft: 36 }}>
           <View
             style={{
               backgroundColor: colors.primary,
@@ -116,15 +124,26 @@ export default function OnboardingQuizAdvanced({ onComplete, onSkip, onBack }) {
             GameQuitter
           </Text>
         </View>
-        <Pressable onPress={onSkip}>
-          <Text style={{ ...typography.body, color: colors.textDim }}>
-            Skip
-          </Text>
-        </Pressable>
+
+        {!!onSkip && (
+          <Pressable
+            onPress={onSkip}
+            style={{
+              position: "absolute",
+              right: 0,
+              padding: 4,
+              zIndex: 10,
+            }}
+          >
+            <Text style={{ ...typography.body, color: colors.textDim }}>
+              Skip
+            </Text>
+          </Pressable>
+        )}
       </View>
 
       {/* Main Flow Bar */}
-      <OnboardingProgress currentStep={4} totalSteps={7} colors={colors} />
+      <OnboardingProgress currentStep={4 + (i / QUESTIONS.length)} totalSteps={7} colors={colors} />
 
       <View style={{ marginTop: spacing.lg, marginBottom: spacing.sm }}>
         <Text

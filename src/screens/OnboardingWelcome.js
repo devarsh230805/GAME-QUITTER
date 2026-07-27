@@ -21,35 +21,40 @@ export default function OnboardingWelcome({ onNext }) {
         style={{
           flexDirection: "row",
           alignItems: "center",
+          width: "100%",
+          height: 32,
+          position: "relative",
           marginBottom: spacing.xs,
         }}
       >
-        <View
-          style={{
-            backgroundColor: colors.primary,
-            width: 28,
-            height: 28,
-            borderRadius: radii.sm,
-            alignItems: "center",
-            justifyContent: "center",
-            marginRight: spacing.sm,
-          }}
-        >
-          <Text
-            style={{ color: colors.surface, fontSize: 10, fontWeight: "bold" }}
+        <View style={{ flexDirection: "row", alignItems: "center", marginLeft: 36 }}>
+          <View
+            style={{
+              backgroundColor: colors.primary,
+              width: 28,
+              height: 28,
+              borderRadius: radii.sm,
+              alignItems: "center",
+              justifyContent: "center",
+              marginRight: spacing.sm,
+            }}
           >
-            GQ
+            <Text
+              style={{ color: colors.surface, fontSize: 10, fontWeight: "bold" }}
+            >
+              GQ
+            </Text>
+          </View>
+          <Text
+            style={{
+              ...typography.subtitle,
+              color: colors.text,
+              fontWeight: "700",
+            }}
+          >
+            GameQuitter
           </Text>
         </View>
-        <Text
-          style={{
-            ...typography.subtitle,
-            color: colors.text,
-            fontWeight: "700",
-          }}
-        >
-          GameQuitter
-        </Text>
       </View>
 
       {/* Progress Flow Bar */}

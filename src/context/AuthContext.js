@@ -1,18 +1,20 @@
+
 import React, { createContext, useContext, useEffect, useState } from "react";
+import { Platform, Alert } from "react-native";
 import { supabase } from "../lib/supabase";
 import * as WebBrowser from "expo-web-browser";
 import * as Linking from "expo-linking";
-
+ 
 WebBrowser.maybeCompleteAuthSession();
-
+ 
 const AuthContext = createContext();
-
+ 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
-
+ 
   // Fetch profile from Supabase 'profiles' table
   const fetchProfile = async (userId) => {
     try {
@@ -21,7 +23,7 @@ export function AuthProvider({ children }) {
         .select("*")
         .eq("id", userId)
         .single();
-
+ 
       if (error && error.code === "PGRST116") {
         // Profile doesn't exist, maybe create it?
         console.log("[AuthContext] Profile not found, creating one...");
@@ -37,7 +39,7 @@ export function AuthProvider({ children }) {
       return null;
     }
   };
-
+ 
   // Update profile in Supabase
   const updateProfile = async (updates) => {
     if (!user) return { error: "No user logged in" };
@@ -51,7 +53,7 @@ export function AuthProvider({ children }) {
         })
         .select()
         .single();
-
+ 
       if (error) throw error;
       setProfile(data);
       return { data, error: null };
@@ -60,52 +62,55 @@ export function AuthProvider({ children }) {
       return { data: null, error };
     }
   };
-
+ 
   // Implement the Deep Link interception logic
   useEffect(() => {
     const handleDeepLink = async (url) => {
       if (!url || !url.includes("auth/callback")) return;
-
+ 
       try {
         const parsed = Linking.parse(url);
         const code = parsed.queryParams?.code;
         const errorDescription = parsed.queryParams?.error_description;
-
+ 
         if (errorDescription) {
           console.error("[AuthLayout] Auth provider error:", errorDescription);
+          Alert.alert("Google Sign-In Error", errorDescription);
           return;
         }
-
+ 
         if (!code) {
           console.warn("[AuthLayout] No code found in URL.");
           return;
         }
-
+ 
         const { data, error } =
           await supabase.auth.exchangeCodeForSession(code);
         if (error) {
           console.error("[AuthLayout] Exchange failed:", error);
+          Alert.alert("Google Sign-In Error", error.message || JSON.stringify(error));
           return;
         }
       } catch (err) {
         console.error("[AuthLayout] Deep link processing error:", err);
+        Alert.alert("Google Sign-In Error", err.message || JSON.stringify(err));
       }
     };
-
+ 
     const subscription = Linking.addEventListener("url", (e) =>
       handleDeepLink(e.url),
     );
     Linking.getInitialURL().then((url) => {
       if (url) handleDeepLink(url);
     });
-
+ 
     return () => subscription.remove();
   }, []);
-
+ 
   // Standard Session Tracking
   useEffect(() => {
     let mounted = true;
-
+ 
     async function loadInitialSession() {
       try {
         const {
@@ -124,9 +129,9 @@ export function AuthProvider({ children }) {
         if (mounted) setLoading(false);
       }
     }
-
+ 
     loadInitialSession();
-
+ 
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
         if (mounted && !isLoggingOut) {
@@ -140,7 +145,7 @@ export function AuthProvider({ children }) {
         }
       },
     );
-
+ 
     return () => {
       mounted = false;
       if (authListener && authListener.subscription) {
@@ -148,7 +153,7 @@ export function AuthProvider({ children }) {
       }
     };
   }, []);
-
+ 
   const signOut = async () => {
     setIsLoggingOut(true);
     try {
@@ -163,12 +168,27 @@ export function AuthProvider({ children }) {
       setTimeout(() => setIsLoggingOut(false), 1000); // Small buffer for events
     }
   };
-
+ 
   const signInWithGoogle = async () => {
     try {
       const redirectUrl = Linking.createURL("auth/callback", {
         scheme: "gamequitter",
       });
+ 
+      if (Platform.OS === 'web') {
+        const { data, error } = await supabase.auth.signInWithOAuth({
+          provider: "google",
+          options: {
+            redirectTo: redirectUrl,
+          },
+        });
+        if (error) throw error;
+        if (data?.url) {
+          window.location.href = data.url;
+        }
+        return;
+      }
+ 
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
@@ -176,10 +196,10 @@ export function AuthProvider({ children }) {
           skipBrowserRedirect: true,
         },
       });
-
+ 
       if (error) throw error;
       if (!data?.url) throw new Error("No auth URL returned from Supabase");
-
+ 
       const result = await WebBrowser.openAuthSessionAsync(
         data.url,
         redirectUrl,
@@ -189,9 +209,39 @@ export function AuthProvider({ children }) {
       }
     } catch (e) {
       console.error("[Auth] signInWithGoogle Error:", e);
+      Alert.alert("Google Sign-In Error", e.message || JSON.stringify(e));
     }
   };
-
+ 
+  const signInWithGitHub = async () => {
+    try {
+      const redirectUrl = Linking.createURL("auth/callback", {
+        scheme: "gamequitter",
+      });
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: "github",
+        options: {
+          redirectTo: redirectUrl,
+          skipBrowserRedirect: true,
+        },
+      });
+ 
+      if (error) throw error;
+      if (!data?.url) throw new Error("No auth URL returned from Supabase");
+ 
+      const result = await WebBrowser.openAuthSessionAsync(
+        data.url,
+        redirectUrl,
+      );
+      if (result.type === "success") {
+        console.log("[Auth] Browser flow success.");
+      }
+    } catch (e) {
+      console.error("[Auth] signInWithGitHub Error:", e);
+      Alert.alert("GitHub Sign-In Error", e.message || JSON.stringify(e));
+    }
+  };
+ 
   const signInAsGuest = () => {
     setUser({ id: "guest-user", email: "guest@gamequitter.com" });
     setProfile({
@@ -199,7 +249,7 @@ export function AuthProvider({ children }) {
       email: "guest@gamequitter.com",
     });
   };
-
+ 
   return (
     <AuthContext.Provider
       value={{
@@ -207,6 +257,7 @@ export function AuthProvider({ children }) {
         profile,
         loading,
         signInWithGoogle,
+        signInWithGitHub,
         signOut,
         updateProfile,
         fetchProfile,
@@ -217,7 +268,7 @@ export function AuthProvider({ children }) {
     </AuthContext.Provider>
   );
 }
-
+ 
 export function useAuth() {
   return useContext(AuthContext);
 }
