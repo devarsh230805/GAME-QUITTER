@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { Platform, Alert } from "react-native";
 import { supabase } from "../lib/supabase";

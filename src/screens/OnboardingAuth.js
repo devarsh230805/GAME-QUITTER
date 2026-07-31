@@ -132,6 +132,7 @@ export default function OnboardingAuth({ onDone, onBack }) {
           <StyledButton
             title="Continue with Google"
             onPress={async () => {
+              console.log("tapped");
               try {
                 await signInWithGoogle();
               } catch (err) {

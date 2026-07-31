@@ -2,7 +2,6 @@
   "expo": {
     "name": "GAME QUITTER",
     "slug": "game-quitter",
-    "owner": "mann",
     "scheme": "gamequitter",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -37,8 +36,9 @@
     ],
     "extra": {
       "eas": {
-        "projectId": "48485739-8456-4dc5-9bd8-28c9d75c02df"
+        "projectId": "85fb9e62-4a69-41cf-8a42-119cd5a5df35"
       }
-    }
+    },
+    "owner": "devarsh230805"
   }
 }
