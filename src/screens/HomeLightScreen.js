@@ -6,6 +6,8 @@ import {
   Pressable,
   ScrollView,
   TextInput,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import HeaderBar from "../components/HeaderBar";
 import StyledCard from "../components/StyledCard";
@@ -86,7 +88,10 @@ export default function HomeLightScreen({ openGameMode, openStats }) {
   );
 
   return (
-    <View style={dynamicStyles.container}>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      style={dynamicStyles.container}
+    >
       {/* Shared Header */}
       <HeaderBar title="Focus Tracker" />
       <ScrollView
@@ -238,7 +243,7 @@ export default function HomeLightScreen({ openGameMode, openStats }) {
           )}
         </StyledCard>
       </ScrollView>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
