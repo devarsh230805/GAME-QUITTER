@@ -15,8 +15,17 @@ import ThemeShutter from "../components/ThemeShutter";
 
 export default function SettingsScreen({ openEditor }) {
   const { user, profile, signOut } = useAuth();
-  const { running, themeMode, setThemeMode, profileName } = useApp();
+  const { running, themeMode, setThemeMode, profileName, setFirstOpenDone } = useApp();
   const colors = getThemeColors(running, themeMode);
+
+  const handleSignOut = async () => {
+    try {
+      setFirstOpenDone(false);
+      await signOut();
+    } catch (e) {
+      console.error("[Settings] SignOut error:", e);
+    }
+  };
 
   const getDisplayName = () => {
     const isGuest = !user || user.id === "guest-user";
@@ -100,7 +109,7 @@ export default function SettingsScreen({ openEditor }) {
             styles.logoutButton,
             { backgroundColor: colors.surface, borderColor: colors.danger },
           ]}
-          onPress={signOut}
+          onPress={handleSignOut}
         >
           <Text style={[styles.logoutText, { color: colors.danger }]}>
             Sign Out
