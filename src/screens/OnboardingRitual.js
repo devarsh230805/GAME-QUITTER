@@ -6,6 +6,9 @@ import {
   TextInput,
   Keyboard,
   StyleSheet,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
 } from "react-native";
 import { createStyles } from "./OnboardingRitual.styles";
 import { useApp } from "../store/AppContext";
@@ -83,193 +86,202 @@ export default function OnboardingRitual({ onCommitted, onSkip, onBack }) {
   }
 
   return (
-    <View
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
       style={[
         styles.container,
         { paddingTop: spacing.xxl, backgroundColor: "transparent" },
       ]}
     >
-      {/* App Header */}
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          width: "100%",
-          height: 32,
-          position: "relative",
-          marginBottom: spacing.xs,
-        }}
+      <ScrollView
+        contentContainerStyle={{ flexGrow: 1, justifyContent: "space-between" }}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
       >
-        {!!onBack && (
-          <Pressable
-            onPress={onBack}
-            style={{
-              position: "absolute",
-              left: 0,
-              padding: 4,
-              zIndex: 10,
-            }}
-          >
-            <Ionicons name="arrow-back" size={20} color={colors.text} />
-          </Pressable>
-        )}
-
-        <View style={{ flexDirection: "row", alignItems: "center", marginLeft: 36 }}>
+        <View style={{ flex: 1 }}>
+          {/* App Header */}
           <View
             style={{
-              backgroundColor: colors.primary,
-              width: 28,
-              height: 28,
-              borderRadius: radii.sm,
+              flexDirection: "row",
               alignItems: "center",
-              justifyContent: "center",
-              marginRight: spacing.sm,
+              width: "100%",
+              height: 32,
+              position: "relative",
+              marginBottom: spacing.xs,
             }}
           >
-            <Text
-              style={{
-                color: colors.surface,
-                fontSize: 10,
-                fontWeight: "bold",
-              }}
-            >
-              GQ
-            </Text>
+            {!!onBack && (
+              <Pressable
+                onPress={onBack}
+                style={{
+                  position: "absolute",
+                  left: 0,
+                  padding: 4,
+                  zIndex: 10,
+                }}
+              >
+                <Ionicons name="arrow-back" size={20} color={colors.text} />
+              </Pressable>
+            )}
+
+            <View style={{ flexDirection: "row", alignItems: "center", marginLeft: 36 }}>
+              <View
+                style={{
+                  backgroundColor: colors.primary,
+                  width: 28,
+                  height: 28,
+                  borderRadius: radii.sm,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  marginRight: spacing.sm,
+                }}
+              >
+                <Text
+                  style={{
+                    color: colors.surface,
+                    fontSize: 10,
+                    fontWeight: "bold",
+                  }}
+                >
+                  GQ
+                </Text>
+              </View>
+              <Text
+                style={{
+                  ...typography.subtitle,
+                  color: colors.text,
+                  fontWeight: "700",
+                }}
+              >
+                GameQuitter
+              </Text>
+            </View>
+
+            {!!onSkip && (
+              <Pressable
+                onPress={() => onSkip?.()}
+                style={{
+                  position: "absolute",
+                  right: 0,
+                  padding: 4,
+                  zIndex: 10,
+                }}
+              >
+                <Text style={{ ...typography.body, color: colors.textDim }}>
+                  Skip
+                </Text>
+              </Pressable>
+            )}
           </View>
-          <Text
-            style={{
-              ...typography.subtitle,
-              color: colors.text,
-              fontWeight: "700",
-            }}
-          >
-            GameQuitter
-          </Text>
-        </View>
 
-        {!!onSkip && (
-          <Pressable
-            onPress={() => onSkip?.()}
-            style={{
-              position: "absolute",
-              right: 0,
-              padding: 4,
-              zIndex: 10,
-            }}
-          >
-            <Text style={{ ...typography.body, color: colors.textDim }}>
-              Skip
-            </Text>
-          </Pressable>
-        )}
-      </View>
+          {/* Main Flow Bar */}
+          <OnboardingProgress currentStep={5} totalSteps={7} colors={colors} />
 
-      {/* Main Flow Bar */}
-      <OnboardingProgress currentStep={5} totalSteps={7} colors={colors} />
-
-      {/* Commitment Content Area - Vertically Centered */}
-      <View
-        style={{ flex: 1, justifyContent: "center", paddingBottom: spacing.xl }}
-      >
-        <View style={{ marginBottom: spacing.lg, alignItems: "center" }}>
+          {/* Commitment Content Area - Vertically Centered */}
           <View
-            style={{
-              backgroundColor: colors.primary + "20",
-              paddingHorizontal: spacing.md,
-              paddingVertical: spacing.xs,
-              borderRadius: radii.full,
-              marginBottom: spacing.lg,
-            }}
+            style={{ flex: 1, justifyContent: "center", paddingBottom: spacing.xl, marginVertical: spacing.md }}
           >
-            <Text
-              style={{
-                ...typography.caption,
-                color: colors.primary,
-                fontWeight: "800",
-                letterSpacing: 1.2,
-              }}
+            <View style={{ marginBottom: spacing.lg, alignItems: "center" }}>
+              <View
+                style={{
+                  backgroundColor: colors.primary + "20",
+                  paddingHorizontal: spacing.md,
+                  paddingVertical: spacing.xs,
+                  borderRadius: radii.full,
+                  marginBottom: spacing.lg,
+                }}
+              >
+                <Text
+                  style={{
+                    ...typography.caption,
+                    color: colors.primary,
+                    fontWeight: "800",
+                    letterSpacing: 1.2,
+                  }}
+                >
+                  STEP 5 OF 7 · COMMITMENT RITUAL
+                </Text>
+              </View>
+              <Text style={[styles.title, { textAlign: "center" }]}>
+                Your Commitment
+              </Text>
+              <Text
+                style={[
+                  styles.body,
+                  { textAlign: "center", paddingHorizontal: spacing.md },
+                ]}
+              >
+                {headline}
+              </Text>
+            </View>
+
+            {/* Typing Box */}
+            <Pressable
+              style={[
+                styles.typeBox,
+                showMistype && styles.typeBoxError,
+                {
+                  marginBottom: spacing.lg,
+                  paddingVertical: spacing.xl,
+                  backgroundColor: colors.surface,
+                  shadowColor: "#000",
+                  shadowOffset: { width: 0, height: 4 },
+                  shadowOpacity: 0.08,
+                  shadowRadius: 12,
+                  elevation: 4,
+                },
+              ]}
+              onPressIn={focusRitualInput}
+              onPress={focusRitualInput}
+              onPressOut={focusRitualInput}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              accessibilityRole="button"
+              accessibilityLabel="Ritual input"
             >
-              STEP 5 OF 7 · COMMITMENT RITUAL
-            </Text>
+              <Text
+                style={{
+                  ...typography.caption,
+                  color: colors.textDim,
+                  marginBottom: spacing.sm,
+                }}
+              >
+                Tap and type:
+              </Text>
+              <Text style={[styles.typeLine, { fontSize: 22, letterSpacing: 1 }]}>
+                <Text style={styles.matched}>{phrase.slice(0, progress)}</Text>
+                <Text style={styles.remaining}>{phrase.slice(progress)}</Text>
+              </Text>
+              {showMistype && (
+                <Text style={[styles.hint, { marginTop: spacing.md }]}>
+                  Type exactly as shown above.
+                </Text>
+              )}
+            </Pressable>
+
+            <TextInput
+              ref={inputRef}
+              value={input}
+              onChangeText={handleChange}
+              autoFocus
+              autoCapitalize="none"
+              autoCorrect={false}
+              blurOnSubmit={false}
+              showSoftInputOnFocus
+              style={[styles.hiddenInput]}
+            />
+
+            <StyledButton
+              title={fullyMatched ? "✓  Continue" : 'Type "I commit" to continue'}
+              onPress={onCommitted}
+              colors={colors}
+              disabled={!fullyMatched}
+              rectangular
+              style={{ marginTop: spacing.md }}
+            />
           </View>
-          <Text style={[styles.title, { textAlign: "center" }]}>
-            Your Commitment
-          </Text>
-          <Text
-            style={[
-              styles.body,
-              { textAlign: "center", paddingHorizontal: spacing.md },
-            ]}
-          >
-            {headline}
-          </Text>
         </View>
-
-        {/* Typing Box */}
-        <Pressable
-          style={[
-            styles.typeBox,
-            showMistype && styles.typeBoxError,
-            {
-              marginBottom: spacing.lg,
-              paddingVertical: spacing.xl,
-              backgroundColor: colors.surface,
-              shadowColor: "#000",
-              shadowOffset: { width: 0, height: 4 },
-              shadowOpacity: 0.08,
-              shadowRadius: 12,
-              elevation: 4,
-            },
-          ]}
-          onPressIn={focusRitualInput}
-          onPress={focusRitualInput}
-          onPressOut={focusRitualInput}
-          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-          accessibilityRole="button"
-          accessibilityLabel="Ritual input"
-        >
-          <Text
-            style={{
-              ...typography.caption,
-              color: colors.textDim,
-              marginBottom: spacing.sm,
-            }}
-          >
-            Tap and type:
-          </Text>
-          <Text style={[styles.typeLine, { fontSize: 22, letterSpacing: 1 }]}>
-            <Text style={styles.matched}>{phrase.slice(0, progress)}</Text>
-            <Text style={styles.remaining}>{phrase.slice(progress)}</Text>
-          </Text>
-          {showMistype && (
-            <Text style={[styles.hint, { marginTop: spacing.md }]}>
-              Type exactly as shown above.
-            </Text>
-          )}
-        </Pressable>
-
-        <TextInput
-          ref={inputRef}
-          value={input}
-          onChangeText={handleChange}
-          autoFocus
-          autoCapitalize="none"
-          autoCorrect={false}
-          blurOnSubmit={false}
-          showSoftInputOnFocus
-          style={[styles.hiddenInput]}
-        />
-
-        <StyledButton
-          title={fullyMatched ? "✓  Continue" : 'Type "I commit" to continue'}
-          onPress={onCommitted}
-          colors={colors}
-          disabled={!fullyMatched}
-          rectangular
-          style={{ marginTop: spacing.md }}
-        />
-      </View>
-    </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
