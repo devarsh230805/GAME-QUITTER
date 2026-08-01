@@ -33,6 +33,7 @@ export function AuthProvider({ children }) {
             id: userId,
             display_name: displayName,
             email: currentUser?.email,
+            avatar_url: currentUser?.user_metadata?.avatar_url || currentUser?.user_metadata?.picture,
             updated_at: new Date().toISOString(),
           })
           .select()

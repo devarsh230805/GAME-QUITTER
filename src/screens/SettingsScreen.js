@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, StyleSheet, Pressable, ScrollView } from "react-native";
+import { View, Text, StyleSheet, Pressable, ScrollView, Image } from "react-native";
 import { useAuth } from "../context/AuthContext";
 import { useApp } from "../store/AppContext";
 import {
@@ -44,6 +44,8 @@ export default function SettingsScreen({ openEditor }) {
       .substring(0, 2);
   };
 
+  const avatarUrl = profile?.avatar_url || user?.user_metadata?.avatar_url || user?.user_metadata?.picture;
+
   return (
     <View style={[styles.container, { backgroundColor: "transparent" }]}>
       <HeaderBar title="Settings" />
@@ -57,9 +59,13 @@ export default function SettingsScreen({ openEditor }) {
           ]}
         >
           <View style={[styles.avatar, { backgroundColor: colors.primary }]}>
-            <Text style={[styles.avatarText, { color: colors.surface }]}>
-              {getInitials(displayName)}
-            </Text>
+            {avatarUrl ? (
+              <Image source={{ uri: avatarUrl }} style={styles.avatarImage} />
+            ) : (
+              <Text style={[styles.avatarText, { color: colors.surface }]}>
+                {getInitials(displayName)}
+              </Text>
+            )}
           </View>
           <View style={styles.profileInfo}>
             <Text style={[styles.profileName, { color: colors.text }]}>
@@ -127,6 +133,11 @@ const styles = StyleSheet.create({
   avatarText: {
     fontSize: 24,
     fontWeight: "800",
+  },
+  avatarImage: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
   },
   profileInfo: {
     flex: 1,
