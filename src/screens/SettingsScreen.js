@@ -15,8 +15,24 @@ import ThemeShutter from "../components/ThemeShutter";
 
 export default function SettingsScreen({ openEditor }) {
   const { user, profile, signOut } = useAuth();
-  const { running, themeMode, setThemeMode } = useApp();
+  const { running, themeMode, setThemeMode, profileName } = useApp();
   const colors = getThemeColors(running, themeMode);
+
+  const getDisplayName = () => {
+    const isGuest = !user || user.id === "guest-user";
+    if (isGuest) {
+      return profileName || "Guest Explorer";
+    }
+    const rawName = profile?.display_name;
+    const isEmail = rawName && rawName.includes("@");
+    if (!rawName || isEmail) {
+      const googleName = user?.user_metadata?.full_name || user?.user_metadata?.name;
+      if (googleName) return googleName;
+    }
+    return rawName || "User";
+  };
+
+  const displayName = getDisplayName();
 
   const getInitials = (name) => {
     if (!name) return "U";
@@ -42,12 +58,12 @@ export default function SettingsScreen({ openEditor }) {
         >
           <View style={[styles.avatar, { backgroundColor: colors.primary }]}>
             <Text style={[styles.avatarText, { color: colors.surface }]}>
-              {getInitials(profile?.display_name || user?.email)}
+              {getInitials(displayName)}
             </Text>
           </View>
           <View style={styles.profileInfo}>
             <Text style={[styles.profileName, { color: colors.text }]}>
-              {profile?.display_name || "User"}
+              {displayName}
             </Text>
             {user?.email && user.email !== "guest@gamequitter.com" && (
               <Text style={[styles.profileEmail, { color: colors.textDim }]}>

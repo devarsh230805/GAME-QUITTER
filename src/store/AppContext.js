@@ -12,7 +12,7 @@ import { useAuth } from "../context/AuthContext";
 const AppContext = createContext(null);
 
 export function AppProvider({ children }) {
-  const { profile: remoteProfile } = useAuth();
+  const { profile: remoteProfile, user } = useAuth();
   const [streak, setStreak] = useState(0);
   const quotes = [
     "The first step is deciding you can.",
@@ -34,14 +34,18 @@ export function AppProvider({ children }) {
   const [profileEmail, setProfileEmail] = useState("");
   const [dailyTargetHours, setDailyTargetHours] = useState(0);
 
-  // Sync with remote profile if available
+  // Sync with remote profile if available (falling back to user metadata name for Google sign-ins)
   useEffect(() => {
     if (remoteProfile) {
-      if (remoteProfile.display_name)
-        setProfileName(remoteProfile.display_name);
+      const name = remoteProfile.display_name || user?.user_metadata?.full_name || user?.user_metadata?.name;
+      if (name) setProfileName(name);
       if (remoteProfile.email) setProfileEmail(remoteProfile.email);
+    } else if (user && user.id !== "guest-user") {
+      const name = user?.user_metadata?.full_name || user?.user_metadata?.name;
+      if (name) setProfileName(name);
+      if (user.email) setProfileEmail(user.email);
     }
-  }, [remoteProfile]);
+  }, [remoteProfile, user]);
 
   // --- daily schedule slots and tasks
   const [schedule, setSchedule] = useState([

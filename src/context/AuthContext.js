@@ -15,8 +15,8 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
  
-  // Fetch profile from Supabase 'profiles' table
-  const fetchProfile = async (userId) => {
+  // Fetch profile from Supabase 'profiles' table (or create one using Google metadata if it doesn't exist)
+  const fetchProfile = async (userId, currentUser) => {
     try {
       const { data, error } = await supabase
         .from("profiles")
@@ -25,8 +25,22 @@ export function AuthProvider({ children }) {
         .single();
  
       if (error && error.code === "PGRST116") {
-        // Profile doesn't exist, maybe create it?
-        console.log("[AuthContext] Profile not found, creating one...");
+        console.log("[AuthContext] Profile not found, creating one using provider metadata...");
+        const displayName = currentUser?.user_metadata?.full_name || currentUser?.user_metadata?.name || "User";
+        const { data: created, error: createError } = await supabase
+          .from("profiles")
+          .upsert({
+            id: userId,
+            display_name: displayName,
+            email: currentUser?.email,
+            updated_at: new Date().toISOString(),
+          })
+          .select()
+          .single();
+        if (!createError && created) {
+          setProfile(created);
+          return created;
+        }
         return null;
       } else if (error) {
         console.error("[AuthContext] Error fetching profile:", error.message);
@@ -129,7 +143,7 @@ export function AuthProvider({ children }) {
           const currentUser = session?.user ?? null;
           setUser(currentUser);
           if (currentUser) {
-            await fetchProfile(currentUser.id);
+            await fetchProfile(currentUser.id, currentUser);
           }
         }
       } catch (err) {
@@ -147,7 +161,7 @@ export function AuthProvider({ children }) {
           const currentUser = session?.user ?? null;
           setUser(currentUser);
           if (currentUser) {
-            await fetchProfile(currentUser.id);
+            await fetchProfile(currentUser.id, currentUser);
           } else {
             setProfile(null);
           }
