@@ -63,6 +63,10 @@ export default function ProfileEditorScreen({ onClose }) {
       setProfileName(nameLocal);
       setProfileEmail(emailLocal);
       setDailyTargetHours(targetHours);
+      await updateProfile({
+        display_name: nameLocal,
+        email: emailLocal,
+      });
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
       if (onClose) setTimeout(onClose, 500);

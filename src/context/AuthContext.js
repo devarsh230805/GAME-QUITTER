@@ -3,6 +3,7 @@ import { Platform, Alert } from "react-native";
 import { supabase } from "../lib/supabase";
 import * as WebBrowser from "expo-web-browser";
 import * as Linking from "expo-linking";
+import AsyncStorage from "@react-native-async-storage/async-storage";
  
 WebBrowser.maybeCompleteAuthSession();
  
@@ -39,9 +40,18 @@ export function AuthProvider({ children }) {
     }
   };
  
-  // Update profile in Supabase
+  // Update profile in Supabase (or locally for guest)
   const updateProfile = async (updates) => {
     if (!user) return { error: "No user logged in" };
+    if (user.id === "guest-user") {
+      const updated = {
+        ...profile,
+        display_name: updates.display_name,
+        email: updates.email || profile?.email,
+      };
+      setProfile(updated);
+      return { data: updated, error: null };
+    }
     try {
       const { data, error } = await supabase
         .from("profiles")
@@ -241,10 +251,23 @@ export function AuthProvider({ children }) {
     }
   };
  
-  const signInAsGuest = () => {
+  const signInAsGuest = async () => {
+    let savedName = "Guest Explorer";
+    try {
+      const raw = await AsyncStorage.getItem("gamequittr_store");
+      if (raw) {
+        const data = JSON.parse(raw);
+        if (data && typeof data.profileName === "string" && data.profileName) {
+          savedName = data.profileName;
+        }
+      }
+    } catch (e) {
+      console.warn("[Auth] Failed to load guest name from storage:", e);
+    }
+
     setUser({ id: "guest-user", email: "guest@gamequitter.com" });
     setProfile({
-      display_name: "Guest Explorer",
+      display_name: savedName,
       email: "guest@gamequitter.com",
     });
   };

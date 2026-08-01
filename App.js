@@ -39,7 +39,7 @@ function AppInner() {
   const [tab, setTab] = useState("home");
   const [flow, setFlow] = useState("splash");
   const [step, setStep] = useState("welcome");
-  const { user, loading } = useAuth();
+  const { user, loading, signInAsGuest } = useAuth();
   const [showEditor, setShowEditor] = useState(false);
 
   useEffect(() => {
@@ -57,11 +57,8 @@ function AppInner() {
     } else {
       // No user session
       if (firstOpenDone) {
-        // Only redirect to welcome when first entering onboarding
-        if (flow !== "onboarding") {
-          setFlow("onboarding");
-          setStep("welcome");
-        }
+        // Automatically restore the Guest session if onboarding was completed
+        signInAsGuest();
       } else {
         // Fresh install, not onboarded
         setFlow("onboarding");
