@@ -61,30 +61,7 @@ export default function GameModeScreen({ onClose, onGoToStats }) {
   const canProceedReason = !!reason; // must pick a reason option before continuing
 
   const focusConfessionInput = React.useCallback(() => {
-    const node = confessionInputRef.current;
-    if (!node) return;
-    // Some Android keyboards need a dismiss before refocus
-    try {
-      Keyboard.dismiss();
-    } catch {}
-    // Try focus immediately
-    try {
-      node.focus?.();
-    } catch {}
-    // Try again on next frame
-    if (global?.requestAnimationFrame) {
-      requestAnimationFrame(() => {
-        try {
-          node.focus?.();
-        } catch {}
-      });
-    }
-    // And once more in a microtask
-    setTimeout(() => {
-      try {
-        node.focus?.();
-      } catch {}
-    }, 0);
+    confessionInputRef.current?.focus();
   }, []);
 
   function getSessionSummary(h) {
@@ -439,10 +416,11 @@ export default function GameModeScreen({ onClose, onGoToStats }) {
                     (running
                       ? { borderColor: themeColors.danger }
                       : styles.typeBoxError),
+                  {
+                    position: "relative",
+                  }
                 ]}
-                onPressIn={focusConfessionInput}
                 onPress={focusConfessionInput}
-                onPressOut={focusConfessionInput}
                 hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                 accessibilityRole="button"
                 accessibilityLabel="Confession input"
@@ -470,21 +448,31 @@ export default function GameModeScreen({ onClose, onGoToStats }) {
                     {CONFESSION.slice(confessionProgress)}
                   </Text>
                 </Text>
+
+                <TextInput
+                  ref={confessionInputRef}
+                  value={confessionInput}
+                  onChangeText={handleConfessionChange}
+                  autoFocus
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  blurOnSubmit={false}
+                  selectionColor="transparent"
+                  cursorColor="transparent"
+                  style={{
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    width: "100%",
+                    height: "100%",
+                    opacity: 0.01,
+                    backgroundColor: "transparent",
+                    color: "transparent",
+                  }}
+                />
               </Pressable>
-              <TextInput
-                ref={confessionInputRef}
-                value={confessionInput}
-                onChangeText={handleConfessionChange}
-                autoFocus
-                autoCapitalize="none"
-                autoCorrect={false}
-                blurOnSubmit={false}
-                showSoftInputOnFocus
-                style={[
-                  styles.hiddenInput,
-                  { width: 1, height: 1, opacity: 0.01 },
-                ]}
-              />
               {showConfMistype && (
                 <Text
                   style={[

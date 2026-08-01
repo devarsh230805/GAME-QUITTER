@@ -37,26 +37,7 @@ export default function OnboardingRitual({ onCommitted, onSkip, onBack }) {
   const fullyMatched = progress === phrase.length;
 
   const focusRitualInput = React.useCallback(() => {
-    const node = inputRef.current;
-    if (!node) return;
-    try {
-      Keyboard.dismiss();
-    } catch {}
-    try {
-      node.focus?.();
-    } catch {}
-    if (global?.requestAnimationFrame) {
-      requestAnimationFrame(() => {
-        try {
-          node.focus?.();
-        } catch {}
-      });
-    }
-    setTimeout(() => {
-      try {
-        node.focus?.();
-      } catch {}
-    }, 0);
+    inputRef.current?.focus();
   }, []);
 
   function handleChange(text) {
@@ -229,11 +210,10 @@ export default function OnboardingRitual({ onCommitted, onSkip, onBack }) {
                   shadowOpacity: 0.08,
                   shadowRadius: 12,
                   elevation: 4,
+                  position: "relative",
                 },
               ]}
-              onPressIn={focusRitualInput}
               onPress={focusRitualInput}
-              onPressOut={focusRitualInput}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
               accessibilityRole="button"
               accessibilityLabel="Ritual input"
@@ -256,19 +236,31 @@ export default function OnboardingRitual({ onCommitted, onSkip, onBack }) {
                   Type exactly as shown above.
                 </Text>
               )}
-            </Pressable>
 
-            <TextInput
-              ref={inputRef}
-              value={input}
-              onChangeText={handleChange}
-              autoFocus
-              autoCapitalize="none"
-              autoCorrect={false}
-              blurOnSubmit={false}
-              showSoftInputOnFocus
-              style={[styles.hiddenInput]}
-            />
+              <TextInput
+                ref={inputRef}
+                value={input}
+                onChangeText={handleChange}
+                autoFocus
+                autoCapitalize="none"
+                autoCorrect={false}
+                blurOnSubmit={false}
+                selectionColor="transparent"
+                cursorColor="transparent"
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  width: "100%",
+                  height: "100%",
+                  opacity: 0.01,
+                  backgroundColor: "transparent",
+                  color: "transparent",
+                }}
+              />
+            </Pressable>
 
             <StyledButton
               title={fullyMatched ? "✓  Continue" : 'Type "I commit" to continue'}
