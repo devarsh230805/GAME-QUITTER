@@ -5,11 +5,11 @@
     "scheme": "gamequitter",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/gq_logo.jpg",
+    "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/gq_logo.jpg",
+      "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -20,7 +20,7 @@
     "android": {
       "package": "com.mann.gamequitter",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/gq_logo.jpg",
+        "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true
