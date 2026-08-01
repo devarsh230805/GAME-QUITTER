@@ -30,7 +30,7 @@ export default function OnboardingWelcome({ onNext }) {
         <View style={{ flexDirection: "row", alignItems: "center", marginLeft: 36 }}>
           <View
             style={{
-              backgroundColor: colors.primary,
+              backgroundColor: "#0F172A",
               width: 28,
               height: 28,
               borderRadius: radii.sm,
@@ -40,7 +40,7 @@ export default function OnboardingWelcome({ onNext }) {
             }}
           >
             <Text
-              style={{ color: colors.surface, fontSize: 10, fontWeight: "bold" }}
+              style={{ color: "#FFFFFF", fontSize: 10, fontWeight: "bold" }}
             >
               GQ
             </Text>

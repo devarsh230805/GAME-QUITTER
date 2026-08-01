@@ -50,7 +50,7 @@ export default function OnboardingWelcome2({ onNext, onSkip, onBack }) {
         <View style={{ flexDirection: "row", alignItems: "center", marginLeft: 36 }}>
           <View
             style={{
-              backgroundColor: colors.primary,
+              backgroundColor: "#0F172A",
               width: 28,
               height: 28,
               borderRadius: radii.sm,
@@ -61,7 +61,7 @@ export default function OnboardingWelcome2({ onNext, onSkip, onBack }) {
           >
             <Text
               style={{
-                color: colors.surface,
+                color: "#FFFFFF",
                 fontSize: 10,
                 fontWeight: "bold",
               }}

@@ -127,7 +127,7 @@ export default function OnboardingRitual({ onCommitted, onSkip, onBack }) {
             <View style={{ flexDirection: "row", alignItems: "center", marginLeft: 36 }}>
               <View
                 style={{
-                  backgroundColor: colors.primary,
+                  backgroundColor: "#0F172A",
                   width: 28,
                   height: 28,
                   borderRadius: radii.sm,
@@ -138,7 +138,7 @@ export default function OnboardingRitual({ onCommitted, onSkip, onBack }) {
               >
                 <Text
                   style={{
-                    color: colors.surface,
+                    color: "#FFFFFF",
                     fontSize: 10,
                     fontWeight: "bold",
                   }}

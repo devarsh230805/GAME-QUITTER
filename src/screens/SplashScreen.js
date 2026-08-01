@@ -61,7 +61,7 @@ const createStyles = (colors) =>
     logo: {
       width: 100,
       height: 100,
-      backgroundColor: colors.primary,
+      backgroundColor: "#0F172A",
       borderRadius: 24,
       alignItems: "center",
       justifyContent: "center",
@@ -72,7 +72,7 @@ const createStyles = (colors) =>
       elevation: 10,
     },
     logoText: {
-      color: colors.surface,
+      color: "#FFFFFF",
       fontSize: 40,
       fontWeight: "900",
     },

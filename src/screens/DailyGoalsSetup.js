@@ -183,7 +183,7 @@ export default function DailyGoalsSetup({ onDone, themeColors, onBack }) {
         <View style={{ flexDirection: "row", alignItems: "center", marginLeft: 36 }}>
           <View
             style={{
-              backgroundColor: themeColors.primary,
+              backgroundColor: "#0F172A",
               width: 28,
               height: 28,
               borderRadius: radii.sm,
@@ -194,7 +194,7 @@ export default function DailyGoalsSetup({ onDone, themeColors, onBack }) {
           >
             <Text
               style={{
-                color: themeColors.surface,
+                color: "#FFFFFF",
                 fontSize: 10,
                 fontWeight: "bold",
               }}
