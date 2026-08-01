@@ -162,78 +162,74 @@ export default function GameModeScreen({ onClose, onGoToStats }) {
       >
         <View style={styles.content}>
           <View style={styles.card}>
-            {/* Budget-based session controls */}
-            {step === "main" && (
-              <>
-                <View style={{ alignItems: "center", marginBottom: 20 }}>
-                  <Text
-                    style={[
-                      styles.body,
-                      running && { color: themeColors.textDim },
-                      { fontSize: 14, marginBottom: 8 },
-                    ]}
-                  >
-                    Remaining today
-                  </Text>
-                  <Text
-                    style={[
-                      styles.title,
-                      running && { color: themeColors.text },
-                      { fontSize: 36, fontWeight: "800" },
-                    ]}
-                  >
-                    {Math.floor(remainingBudgetMs() / 3600000)}h{" "}
-                    {Math.floor((remainingBudgetMs() % 3600000) / 60000)}m
-                  </Text>
-                </View>
+          {/* Budget-based session controls */}
+          {step === "main" && (
+            <>
+              <View style={{ alignItems: "center", marginBottom: 20 }}>
+                <Text
+                  style={[
+                    styles.body,
+                    running && { color: themeColors.textDim },
+                    { fontSize: 14, marginBottom: 8 },
+                  ]}
+                >
+                  Remaining today
+                </Text>
+                <Text
+                  style={[
+                    styles.title,
+                    running && { color: themeColors.text },
+                    { fontSize: 36, fontWeight: "800" },
+                  ]}
+                >
+                  {Math.floor(remainingBudgetMs() / 3600000)}h{" "}
+                  {Math.floor((remainingBudgetMs() % 3600000) / 60000)}m
+                </Text>
+              </View>
 
-                {/* Session hour adjustment */}
-                {!running && (
-                  <View style={styles.sessionControl}>
-                    <Text style={styles.sessionLabel}>Session length:</Text>
-                    <View style={styles.sessionAdjust}>
-                      <Pressable
-                        style={({ pressed }) => [
-                          styles.hourBtn,
-                          pressed && styles.hourBtnPressed,
-                        ]}
-                        onPress={() =>
-                          setSessionHours(Math.max(0.5, sessionHours - 0.5))
-                        }
-                      >
-                        <Text style={styles.hourBtnTxt}>-</Text>
-                      </Pressable>
-                      <Text style={styles.sessionVal}>{sessionHours}h</Text>
-                      <Pressable
-                        style={({ pressed }) => [
-                          styles.hourBtn,
-                          pressed && styles.hourBtnPressed,
-                        ]}
-                        onPress={() =>
-                          setSessionHours(
-                            Math.min(
-                              Math.ceil(remainingBudgetMs() / 1800000) / 2,
-                              sessionHours + 0.5,
-                            ),
-                          )
-                        }
-                      >
-                        <Text style={styles.hourBtnTxt}>+</Text>
-                      </Pressable>
-                    </View>
-                  </View>
-                )}
-
-                {/* Main Action Trigger */}
+              {running ? (
                 <Pressable
                   style={({ pressed }) => [
-                    styles.actionBtn,
-                    running && styles.actionStopBtn,
+                    {
+                      backgroundColor: themeColors.primary,
+                      paddingVertical: 12,
+                      paddingHorizontal: 18,
+                      borderRadius: 8,
+                      alignItems: "center",
+                      marginTop: 10,
+                    },
+                    pressed && { backgroundColor: themeColors.primaryDim },
+                  ]}
+                  onPress={() => {
+                    stopSession();
+                    onGoToStats && onGoToStats();
+                  }}
+                >
+                  <Text style={styles.actionTextPrimary}>
+                    Stop & Mark as Done
+                  </Text>
+                </Pressable>
+              ) : shouldGatePlay() ? (
+                <Pressable
+                  style={({ pressed }) => [
+                    styles.actionRed,
                     pressed && { opacity: 0.9 },
                   ]}
-                  onPress={running ? stopSession : startSession}
+                  onPress={() => setStep("ask")}
                 >
                   <Text style={styles.actionText}>
+                    Budget Exhausted - Tap to Override
+                  </Text>
+                </Pressable>
+              ) : (
+                <Pressable
+                  style={({ pressed }) => [
+                    running
+                      ? {
+                          backgroundColor: themeColors.primary,
+                          paddingVertical: 12,
+                          paddingHorizontal: 18,
+                          borderRadius: 8,
                           alignItems: "center",
                           marginTop: 10,
                         }
@@ -534,9 +530,10 @@ export default function GameModeScreen({ onClose, onGoToStats }) {
               )}
             </>
           )}
+          </View>
         </View>
-      </View>
-    </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
