@@ -9,6 +9,7 @@ import {
   Dimensions,
   Platform,
   ActivityIndicator,
+  KeyboardAvoidingView,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useApp } from "../store/AppContext";
@@ -92,129 +93,135 @@ export default function ProfileEditorScreen({ onClose }) {
 
   return (
     <SafeAreaView edges={["top", "bottom"]} style={[styles.container, { backgroundColor: colors.background }]}>
-      <HeaderBar title="Edit Profile" />
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        style={{ flex: 1 }}
+      >
+        <HeaderBar title="Edit Profile" />
 
-      {onClose && (
-        <Pressable style={styles.closeButton} onPress={onClose}>
-          <Ionicons name="close" size={28} color={colors.text} />
-        </Pressable>
-      )}
+        {onClose && (
+          <Pressable style={styles.closeButton} onPress={onClose}>
+            <Ionicons name="close" size={28} color={colors.text} />
+          </Pressable>
+        )}
 
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        <View
-          style={[
-            styles.card,
-            { backgroundColor: colors.surface, borderColor: colors.border },
-            shadows.card,
-          ]}
-        >
-          <Text style={[styles.label, { color: colors.textDim }]}>
-            Display Name
-          </Text>
-          <TextInput
-            value={nameLocal}
-            onChangeText={setNameLocal}
+        <ScrollView contentContainerStyle={styles.scrollContent}>
+          <View
             style={[
-              styles.input,
-              {
-                backgroundColor: colors.background,
-                borderColor: colors.border,
-                color: colors.text,
-              },
-            ]}
-            placeholder="Your name"
-            placeholderTextColor={colors.textDim}
-          />
-
-          {!isGuest && (
-            <>
-              <Text
-                style={[
-                  styles.label,
-                  { color: colors.textDim, marginTop: spacing.lg },
-                ]}
-              >
-                Email Address
-              </Text>
-              <TextInput
-                value={emailLocal}
-                onChangeText={setEmailLocal}
-                style={[
-                  styles.input,
-                  {
-                    backgroundColor: colors.background,
-                    borderColor: colors.border,
-                    color: colors.text,
-                  },
-                ]}
-                placeholder="you@example.com"
-                placeholderTextColor={colors.textDim}
-                keyboardType="email-address"
-                autoCapitalize="none"
-              />
-            </>
-          )}
-
-          <Text
-            style={[
-              styles.label,
-              { color: colors.textDim, marginTop: spacing.xl },
+              styles.card,
+              { backgroundColor: colors.surface, borderColor: colors.border },
+              shadows.card,
             ]}
           >
-            Daily Focus Target (Hours)
-          </Text>
-          <View style={styles.targetRow}>
-            <Pressable
-              style={[styles.targetBtn, { backgroundColor: colors.primary }]}
-              onPress={() => setTargetHours(Math.max(0, targetHours - 0.5))}
-            >
-              <Text style={[styles.targetBtnText, { color: colors.surface }]}>
-                -
-              </Text>
-            </Pressable>
-            <Text style={[styles.targetValue, { color: colors.text }]}>
-              {targetHours}h
+            <Text style={[styles.label, { color: colors.textDim }]}>
+              Display Name
             </Text>
-            <Pressable
-              style={[styles.targetBtn, { backgroundColor: colors.primary }]}
-              onPress={() => setTargetHours(Math.min(12, targetHours + 0.5))}
+            <TextInput
+              value={nameLocal}
+              onChangeText={setNameLocal}
+              style={[
+                styles.input,
+                {
+                  backgroundColor: colors.background,
+                  borderColor: colors.border,
+                  color: colors.text,
+                },
+              ]}
+              placeholder="Your name"
+              placeholderTextColor={colors.textDim}
+            />
+
+            {!isGuest && (
+              <>
+                <Text
+                  style={[
+                    styles.label,
+                    { color: colors.textDim, marginTop: spacing.lg },
+                  ]}
+                >
+                  Email Address
+                </Text>
+                <TextInput
+                  value={emailLocal}
+                  onChangeText={setEmailLocal}
+                  style={[
+                    styles.input,
+                    {
+                      backgroundColor: colors.background,
+                      borderColor: colors.border,
+                      color: colors.text,
+                    },
+                  ]}
+                  placeholder="Your email"
+                  placeholderTextColor={colors.textDim}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                />
+              </>
+            )}
+
+            <Text
+              style={[
+                styles.label,
+                { color: colors.textDim, marginTop: spacing.xl },
+              ]}
             >
-              <Text style={[styles.targetBtnText, { color: colors.surface }]}>
-                +
+              Daily Focus Target (Hours)
+            </Text>
+            <View style={styles.targetRow}>
+              <Pressable
+                style={[styles.targetBtn, { backgroundColor: colors.primary }]}
+                onPress={() => setTargetHours(Math.max(0, targetHours - 0.5))}
+              >
+                <Text style={[styles.targetBtnText, { color: colors.surface }]}>
+                  -
+                </Text>
+              </Pressable>
+              <Text style={[styles.targetValue, { color: colors.text }]}>
+                {targetHours}h
               </Text>
+              <Pressable
+                style={[styles.targetBtn, { backgroundColor: colors.primary }]}
+                onPress={() => setTargetHours(Math.min(12, targetHours + 0.5))}
+              >
+                <Text style={[styles.targetBtnText, { color: colors.surface }]}>
+                  +
+                </Text>
+              </Pressable>
+            </View>
+
+            {error ? (
+              <Text style={[styles.errorText, { color: colors.danger }]}>
+                {error}
+              </Text>
+            ) : null}
+            {success ? (
+              <Text style={[styles.successText, { color: colors.success }]}>
+                Profile updated successfully!
+              </Text>
+            ) : null}
+
+            <Pressable
+              style={[
+                styles.saveButton,
+                { backgroundColor: colors.primary },
+                loading && { opacity: 0.7 },
+              ]}
+              onPress={handleSave}
+              disabled={loading}
+            >
+              {loading ? (
+                <ActivityIndicator color={colors.surface} />
+              ) : (
+                <Text style={[styles.saveButtonText, { color: colors.surface }]}>
+                  Save Changes
+                </Text>
+              )}
             </Pressable>
           </View>
-
-          {error ? (
-            <Text style={[styles.errorText, { color: colors.danger }]}>
-              {error}
-            </Text>
-          ) : null}
-          {success ? (
-            <Text style={[styles.successText, { color: colors.success }]}>
-              Profile updated successfully!
-            </Text>
-          ) : null}
-
-          <Pressable
-            style={[
-              styles.saveButton,
-              { backgroundColor: colors.primary },
-              loading && { opacity: 0.7 },
-            ]}
-            onPress={handleSave}
-            disabled={loading}
-          >
-            {loading ? (
-              <ActivityIndicator color={colors.surface} />
-            ) : (
-              <Text style={[styles.saveButtonText, { color: colors.surface }]}>
-                Save Changes
-              </Text>
-            )}
-          </Pressable>
-        </View>
-      </ScrollView>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }

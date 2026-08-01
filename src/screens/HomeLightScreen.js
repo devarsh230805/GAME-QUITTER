@@ -47,10 +47,11 @@ export default function HomeLightScreen({ openGameMode, openStats }) {
 
   // Get theme colors based on whether game is running
   const themeColors = getThemeColors(running, themeMode);
-
   const [taskInput, setTaskInput] = useState("");
   const [showTaskInput, setShowTaskInput] = useState(false);
   const inputRef = useRef(null);
+  const scrollViewRef = useRef(null);
+
   function addTaskFromInput() {
     const t = taskInput.trim();
     if (!t) return;
@@ -88,7 +89,11 @@ export default function HomeLightScreen({ openGameMode, openStats }) {
     <View style={dynamicStyles.container}>
       {/* Shared Header */}
       <HeaderBar title="Focus Tracker" />
-      <ScrollView contentContainerStyle={dynamicStyles.containerContent}>
+      <ScrollView
+        ref={scrollViewRef}
+        contentContainerStyle={dynamicStyles.containerContent}
+        keyboardShouldPersistTaps="handled"
+      >
         {/* Progress Summary Card */}
         <Pressable onPress={() => openStats && openStats()}>
           <StyledCard
@@ -172,7 +177,10 @@ export default function HomeLightScreen({ openGameMode, openStats }) {
             <Pressable
               onPress={() => {
                 setShowTaskInput(true);
-                setTimeout(() => inputRef.current?.focus(), 0);
+                setTimeout(() => {
+                  inputRef.current?.focus();
+                  scrollViewRef.current?.scrollToEnd({ animated: true });
+                }, 100);
               }}
             >
               <Text style={dynamicStyles.addHeaderLink}>Add</Text>
@@ -217,6 +225,11 @@ export default function HomeLightScreen({ openGameMode, openStats }) {
                 placeholder="Add a new task"
                 placeholderTextColor={themeColors.textDim}
                 onSubmitEditing={addTaskFromInput}
+                onFocus={() => {
+                  setTimeout(() => {
+                    scrollViewRef.current?.scrollToEnd({ animated: true });
+                  }, 100);
+                }}
                 onBlur={() => {
                   if (!taskInput.trim()) setShowTaskInput(false);
                 }}
